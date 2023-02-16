@@ -4,3 +4,9 @@ format: html
 editor: source
 ---
 
+Here's some text followed by a code chunk.
+
+```{r}
+1 + 1
+```
+
