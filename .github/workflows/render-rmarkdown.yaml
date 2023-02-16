@@ -24,8 +24,8 @@ jobs:
 
       # add software dependencies here
 
-      # - name: Install R dependencies
-        # run: Rscript -e 'install.packages(c("jsonlite", "fontawesome", "rmarkdown", "rsvg", "readxl", "dplyr", "tidyr"))'
+      - name: Install R dependencies
+        run: Rscript -e 'install.packages(c("jsonlite", "fontawesome", "rmarkdown"))'
 
       - name: Publish to GitHub Pages (and render)
         uses: quarto-dev/quarto-actions/publish@v2
