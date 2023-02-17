@@ -36,8 +36,9 @@ jobs:
 
       - name: Install R dependencies
         run: |
-          install.packages(c("jsonlite", "rmarkdown", "remotes", "mapview", "sf"))
-          remotes::install_github("tbep-tech/tbeptools")
+          install.packages(c("jsonlite", "rmarkdown", "mapview", "sf"))
+          options(repos = c(tbeptech = "https://tbep-tech.r-universe.dev", CRAN = "https://cloud.r-project.org"))
+          install.packages("tbeptools")
         shell: Rscript {0}
 
       - name: Publish to GitHub Pages (and render)
