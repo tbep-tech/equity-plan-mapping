@@ -23,9 +23,21 @@ jobs:
           # version: 0.9.600
 
       # add software dependencies here
+      - name: Install Ubuntu dependencies
+        run: |
+          sudo apt-get install libcurl4-openssl-dev
+          sudo apt-get install libpoppler-cpp-dev
+          sudo apt-get install libudunits2-dev
+          sudo apt-get install libgdal-dev
+          sudo apt-get install libgeos-dev
+          sudo apt-get install libproj-dev
+          sudo apt-get install libharfbuzz-dev
+          sudo apt-get install libfribidi-dev
 
       - name: Install R dependencies
-        run: Rscript -e 'install.packages(c("jsonlite", "fontawesome", "rmarkdown"))'
+        run: |
+          install.packages(c("jsonlite", "rmarkdown", "remotes", "mapview", "sf"))
+          remotes::install_github("tbep-tech/tbeptools")
 
       - name: Publish to GitHub Pages (and render)
         uses: quarto-dev/quarto-actions/publish@v2

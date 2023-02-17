@@ -1,12 +1,78 @@
 ---
-title: "Equity Mapping"
+title: "Downloading and cropping EJScreen data"
 format: html
 editor: source
 ---
 
-Here's some text followed by a code chunk.
+Load the required R packages (install first as needed, tbeptools installation instructrions are [here](https://tbep-tech.github.io/tbeptools/))
+.
+```{r}
+library(tbeptools)
+library(sf)
+library(mapview)
+```
+
+Download the relevant file from EJScreen.  All files available at <https://gaftp.epa.gov/EJSCREEN/2022/?C=S;O=A>.  The file is downloaded to a temporary directory. 
 
 ```{r}
-1 + 1
+# url with zip gdb to download
+urlin <- 'https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip'
+
+# download file
+tmp1 <- tempfile(fileext = "zip")
+download.file(url = urlin, destfile = tmp1, method = "libcurl", mode = "wb")
+```
+
+Unzip the geodatabase that was downloaded to a second temporary directory. 
+
+```{r}
+# unzip file
+tmp2 <- tempfile()
+utils::unzip(tmp1, exdir = tmp2, overwrite = TRUE)
+```
+
+Read the polygon layer from the geodatabase.
+
+```{r}
+# read the layer from the gdb
+gdbpth <- list.files(tmp2, pattern = '\\.gdb$', full.names = T)
+lyrs <- st_layers(gdbpth)$name
+
+# read the layer
+dat <- st_read(dsn = gdbpth, lyrs)
+```
+
+Intersect the layer with the Tampa Bay watershed.
+
+```{r}
+# intersect the layer with the tb watershed
+dattb <- dat %>% 
+  st_transform(crs = st_crs(tbshed)) %>% 
+  st_make_valid() %>% 
+  st_intersection(tbshed)
+```
+
+View the data using mapview.
+
+```{r}
+#| out-width: "100%"
+# view the layer
+mapview(dattb)
+```
+
+The layer can be saved as an RData object if needed.  Size is very small (~1mb).
+
+```{r}
+#| eval: false
+# save the layer as an RData object (~1mb)
+save(dattb, file = 'data/dattb.RData')
+```
+
+Unlink the temporary files so they're deleted when you're done. 
+
+```{r}
+# remove temp files
+unlink(tmp1, recursive = TRUE)
+unlink(tmp2, recursive = TRUE)
 ```
 
