@@ -38,6 +38,7 @@ jobs:
         run: |
           install.packages(c("jsonlite", "rmarkdown", "remotes", "mapview", "sf"))
           remotes::install_github("tbep-tech/tbeptools")
+        shell: Rscript {0}
 
       - name: Publish to GitHub Pages (and render)
         uses: quarto-dev/quarto-actions/publish@v2
