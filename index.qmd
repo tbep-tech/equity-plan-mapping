@@ -4,7 +4,7 @@ format: html
 editor: source
 ---
 
-Load the required R packages (install first as needed, tbeptools installation instructrions are [here](https://tbep-tech.github.io/tbeptools/))
+Load the required R packages (install first as needed, tbeptools installation instructions are [here](https://tbep-tech.github.io/tbeptools/))
 .
 ```{r}
 library(tbeptools)
@@ -34,7 +34,7 @@ utils::unzip(tmp1, exdir = tmp2, overwrite = TRUE)
 Read the polygon layer from the geodatabase.
 
 ```{r}
-# read the layer from the gdb
+# get the layers from the gdb
 gdbpth <- list.files(tmp2, pattern = '\\.gdb$', full.names = T)
 lyrs <- st_layers(gdbpth)$name
 
