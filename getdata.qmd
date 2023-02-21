@@ -54,28 +54,10 @@ dattb <- dat %>%
   st_intersection(tbshed)
 ```
 
-Create thresholds for index. 
-
-```{r}
-dattb <- dattb %>%
-  filter(ACSTOTPOP > 0) %>%
-  mutate(threshold_income = ifelse(P_LWINCPCT >= 80, 1, 0),
-         threshold_unempl = ifelse(P_UNEMPPCT >= 80, 1, 0),
-         threshold_lingui = ifelse(P_LNGISPCT >= 80, 1, 0),
-         threshold_educat = ifelse(P_LESHSPCT >= 80, 1, 0),
-         threshold_lifexp = ifelse(P_LIFEEXPCT >= 80, 1, 0)) %>%
-  rowwise() %>%
-  select(matches('^threshold')) %>% 
-  mutate(threshold_N = sum(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, na.rm = TRUE)) %>%
-  mutate(underserved = ifelse(threshold_N > 1, "Yes", "No"))
-```
-
 View some maps.
 
 ```{r}
-mapview(dattb, zcol = "threshold_N")
-mapview(dattbcopy, zcol = "underserved")
-
+mapview(dattb)
 ```
 
 The layer can be saved as an RData object if needed.  Size is very small (~1mb).

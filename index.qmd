@@ -21,14 +21,30 @@ Load the data.
 load(file = 'data/dattb.RData')
 ```
 
+Create thresholds and remove bay tracts (population zero). 
+
+```{r}
+dattbindex <- dattb %>%
+  filter(ACSTOTPOP > 0) %>%
+  mutate(threshold_income = ifelse(P_LWINCPCT >= 80, 1, 0),
+         threshold_unempl = ifelse(P_UNEMPPCT >= 80, 1, 0),
+         threshold_lingui = ifelse(P_LNGISPCT >= 80, 1, 0),
+         threshold_educat = ifelse(P_LESHSPCT >= 80, 1, 0),
+         threshold_lifexp = ifelse(P_LIFEEXPCT >= 80, 1, 0)) %>%
+  rowwise() %>%
+  select(matches('^threshold')) %>% 
+  mutate(threshold_N = sum(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, na.rm = TRUE)) %>%
+  mutate(underserved = ifelse(threshold_N > 1, "Yes", "No"))
+```
+
 View the first five rows. 
 
 ```{r}
-head(dattb)
+head(dattbindex)
 ```
 
 Map the spatial data only. 
 
 ```{r}
-mapview(dattb)
+mapview(dattbindex)
 ```
