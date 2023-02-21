@@ -1,97 +1,34 @@
 ---
-title: "Downloading and cropping EJScreen data"
+title: "Creating the equity index"
 format: html
 editor: source
 ---
 
-Load the required R packages (install first as needed, tbeptools installation instructions are [here](https://tbep-tech.github.io/tbeptools/))
+Load the required R packages.
 .
 ```{r}
-library(tbeptools)
+#| message: false
+#| warning: false
 library(sf)
 library(mapview)
 library(dplyr)
 library(RColorBrewer)
 ```
 
-Download the relevant file from EJScreen.  All files available at <https://gaftp.epa.gov/EJSCREEN/2022/?C=S;O=A>.  The file is downloaded to a temporary directory. 
+Load the data.
 
 ```{r}
-# url with zip gdb to download
-urlin <- 'https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip'
-
-# download file
-tmp1 <- tempfile(fileext = "zip")
-download.file(url = urlin, destfile = tmp1)
+load(file = 'data/dattb.RData')
 ```
 
-Unzip the geodatabase that was downloaded to a second temporary directory. 
+View the first five rows. 
 
 ```{r}
-# unzip file
-tmp2 <- tempfile()
-utils::unzip(tmp1, exdir = tmp2, overwrite = TRUE)
+head(dattb)
 ```
 
-Read the polygon layer from the geodatabase.
+Map the spatial data only. 
 
 ```{r}
-# get the layers from the gdb
-gdbpth <- list.files(tmp2, pattern = '\\.gdb$', full.names = T)
-lyrs <- st_layers(gdbpth)$name
-
-# read the layer
-dat <- st_read(dsn = gdbpth, lyrs)
-```
-
-Intersect the layer with the Tampa Bay watershed.
-
-```{r}
-# intersect the layer with the tb watershed
-dattb <- dat %>% 
-  st_transform(crs = st_crs(tbshed)) %>% 
-  st_make_valid() %>% 
-  st_intersection(tbshed)
-```
-
-View the data using mapview.
-
-```{r}
-#| out-width: "100%"
-# view the layer
 mapview(dattb)
 ```
-```{r}
-dattbcopy <- dattb %>%
-  filter(ACSTOTPOP > 0) %>%
-  mutate(threshold_income = ifelse(P_LWINCPCT >= 80, 1, 0),
-         threshold_unempl = ifelse(P_UNEMPPCT >= 80, 1, 0),
-         threshold_lingui = ifelse(P_LNGISPCT >= 80, 1, 0),
-         threshold_educat = ifelse(P_LESHSPCT >= 80, 1, 0),
-         threshold_lifexp = ifelse(P_LIFEEXPCT >= 80, 1, 0)) %>%
-  rowwise() %>%
-  mutate(threshold_N = sum(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, na.rm = TRUE)) %>%
-  mutate(underserved = ifelse(threshold_N > 1, "Yes", "No"))
-mapview(dattbcopy, zcol = "threshold_N")
-
-
-mapview(dattbcopy, zcol = "underserved")
-
-```
-
-The layer can be saved as an RData object if needed.  Size is very small (~1mb).
-
-```{r}
-#| eval: false
-# save the layer as an RData object (~1mb)
-save(dattb, file = 'data/dattb.RData')
-```
-
-Unlink the temporary files so they're deleted when you're done. 
-
-```{r}
-# remove temp files
-unlink(tmp1, recursive = TRUE)
-unlink(tmp2, recursive = TRUE)
-```
-
