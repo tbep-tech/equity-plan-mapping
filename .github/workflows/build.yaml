@@ -36,7 +36,7 @@ jobs:
 
       - name: Install R dependencies
         run: |
-          install.packages(c("jsonlite", "rmarkdown", "mapview", "sf"))
+          install.packages(c("jsonlite", "rmarkdown", "mapview", "sf", "dplyr", "RColorBrewer"))
           options(repos = c(tbeptech = "https://tbep-tech.r-universe.dev", CRAN = "https://cloud.r-project.org"))
           install.packages("tbeptools")
         shell: Rscript {0}
