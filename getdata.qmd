@@ -13,7 +13,6 @@ The method described below is presented in R coding language, but users who pref
 Load the required R packages (install first as needed, tbeptools installation instructions are [here](https://tbep-tech.github.io/tbeptools/))
 
 ```{r}
-library(tbeptools)
 library(sf)
 library(mapview)
 ```
@@ -55,6 +54,8 @@ dat <- st_read(dsn = gdbpth, lyrs)
 To exclude census tracts outside of our watershed boundary, intersect the layer with the Tampa Bay watershed. If working in a different area, you will want to replace the tbshed shapefile with your own boundary file.
 
 ```{r}
+load(file = 'data/tbshed.RData')
+
 # intersect the layer with the tb watershed
 dattb <- dat %>% 
   st_transform(crs = st_crs(tbshed)) %>% 

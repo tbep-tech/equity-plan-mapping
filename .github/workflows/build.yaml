@@ -25,20 +25,13 @@ jobs:
       # add software dependencies here
       - name: Install Ubuntu dependencies
         run: |
-          sudo apt-get install libcurl4-openssl-dev
-          sudo apt-get install libpoppler-cpp-dev
-          sudo apt-get install libudunits2-dev
           sudo apt-get install libgdal-dev
           sudo apt-get install libgeos-dev
           sudo apt-get install libproj-dev
-          sudo apt-get install libharfbuzz-dev
-          sudo apt-get install libfribidi-dev
 
       - name: Install R dependencies
         run: |
           install.packages(c("jsonlite", "rmarkdown", "mapview", "sf", "dplyr", "RColorBrewer"))
-          options(repos = c(tbeptech = "https://tbep-tech.r-universe.dev", CRAN = "https://cloud.r-project.org"))
-          install.packages("tbeptools")
         shell: Rscript {0}
 
       - name: Publish to GitHub Pages (and render)
