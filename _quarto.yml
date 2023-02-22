@@ -1,0 +1,29 @@
+project:
+  type: website
+
+website:
+  title: "TBEP Equity Strategy: Mapping"
+  repo-url: https://github.com/tbep-tech/equity-plan-mapping
+  page-footer:
+    left: |
+      Website created by Blake Simmons and Marcus Beck
+    right: |
+      This website was built with <a href="https://quarto.org/" target="_blank">Quarto</a>
+  navbar:
+    left:
+      - href: index.qmd
+        text: Getting EJScreen data
+      - create.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    code-tools:
+      source: repo
+  pdf:
+    documentclass: scrreprt
+
+execute:
+  echo: false
+  warning: false
