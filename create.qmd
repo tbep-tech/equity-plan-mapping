@@ -61,7 +61,7 @@ dattbindex <- dattb %>%
          threshold_educat = ifelse(P_LESHSPCT >= 80, 1, 0),
          threshold_lifexp = ifelse(P_LIFEEXPCT >= 80, 1, 0)) %>%
   rowwise() %>%
-  select(matches('^threshold')) %>% 
+  select(matches('^threshold|^ID')) %>% 
   mutate(threshold_N = sum(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, na.rm = TRUE)) %>%
   mutate(underserved = ifelse(threshold_N > 1, "Yes", "No"))
 ```
