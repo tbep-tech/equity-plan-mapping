@@ -12,7 +12,7 @@ execute:
 
 The Tampa Bay Estuary Program (TBEP) is developing a methodology as part of its new Equity Strategy to identify historically underserved (i.e., disadvantaged) communities across the Tampa Bay watershed to support the goals of the White House’s [Justice40 Initiative](https://www.whitehouse.gov/environmentaljustice/justice40/) (EO 14008) and the Environmental Protection Agency’s [Equity Action Plan](https://www.epa.gov/environmentaljustice/equity-action-plan) (EO 13985). The purpose of this initiative is to ensure TBEP delivers equitable and fair access to the benefits from environmental programs for all communities. 
 
-Below, we have provided instructions for downloading the data that will be used to identify underserved communities in Tampa Bay. To view instructions for cleaning the data and utilizing the socioeconomic indices to map underserved communities, see "Mapping underserved communities".
+Below, we have provided instructions for downloading the data that will be used to identify underserved communities in Tampa Bay. To view instructions for cleaning the data and utilizing the demographic indices to map underserved communities, see "Mapping underserved communities".
 
 The method described below is presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step.
 
@@ -24,7 +24,7 @@ library(sf)
 library(mapview)
 ```
 
-To collect socioeconomic data that will be used for identifying underserved communities, we will be downloading U.S. census data provided by the EPA’s 2022 Environmental Justice Screening Tool (EJScreen). This data is available from <https://gaftp.epa.gov/EJSCREEN/2022/?C=S;O=A>. Here you will find different versions of EJScreen data that are summarized, calculated, and visualized in different ways to meet your particular needs (e.g., census blocks or tracts, state or national percentiles, tabular or spatial data).
+To collect demographic data that will be used for identifying underserved communities, we will be downloading U.S. census data provided by the EPA’s 2022 Environmental Justice Screening Tool (EJScreen). This data is available from <https://gaftp.epa.gov/EJSCREEN/2022/?C=S;O=A>. Here you will find different versions of EJScreen data that are summarized, calculated, and visualized in different ways to meet your particular needs (e.g., census blocks or tracts, state or national percentiles, tabular or spatial data).
 
 In our case, we are interested in obtaining spatial data for the supplemental demographic indices, summarized at the census tract level, using national percentiles as our thresholds for identifying underserved communities. The appropriate file to download for our requirements is “EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip”. However, you may want to explore the files available to see if a different file is more appropriate based on your needs.
 
