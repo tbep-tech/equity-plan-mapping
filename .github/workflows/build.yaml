@@ -21,8 +21,8 @@ jobs:
           sudo apt-get install libproj-dev
           sudo apt-get install libudunits2-dev
 
-      - name: Setup renv
-        uses: r-lib/actions/setup-renv@v2
+      - name: Set up R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2

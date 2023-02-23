@@ -1,12 +1,11 @@
 ---
+title: Mapping underserved communities
 format: html
 editor: source
 
 execute:
   echo: true
 ---
-
-# Mapping underserved communities {#mapping}
 
 The Tampa Bay Estuary Program (TBEP) is developing a methodology as part of its new Equity Strategy to identify historically underserved (i.e., disadvantaged) communities across the Tampa Bay watershed to support the goals of the White House's [Justice40 Initiative](https://www.whitehouse.gov/environmentaljustice/justice40/){target="_blank"} (EO 14008) and the Environmental Protection Agency's [Equity Action Plan](https://www.epa.gov/environmentaljustice/equity-action-plan){target="_blank"} (EO 13985). The purpose of this initiative is to ensure TBEP delivers equitable and fair access to the benefits from environmental programs for all communities.
 
