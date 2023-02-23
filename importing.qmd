@@ -1,0 +1,65 @@
+---
+title: Importing additional spatial data
+format: html
+editor: source
+
+execute:
+  echo: true
+---
+
+```{r}
+library(sf)
+library(mapview)
+```
+
+## Mined Units 
+
+The mined units can be read in directly with `st_read`. 
+
+```{r}
+mined <- st_read('https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/MMP_MINEDUNITS/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')
+mapview(mined)
+```
+
+## Brownfield sites
+
+Download the zipped kml file to a temporary directory.
+
+```{r}
+# url with zipped kml
+urlin <- 'https://ordsext.epa.gov/FLA/www3/acres_frs.kmz'
+
+# download file
+tmp1 <- tempfile(fileext = ".kmz")
+download.file(url = urlin, destfile = tmp1, method = 'curl')
+```
+
+Unzip the kmz file.
+
+```{r}
+tmp2 <- tempdir()
+unzip(tmp1, exdir = tmp2)
+```
+
+Get the name of the kml file to read. 
+
+```{r}
+lyr <- unzip(tmp1, list = T)$Name
+fl <- paste(c(tmp2, lyr), collapse = "\\")
+```
+
+Read the kml file with `st_read` and drop Z dimension with `st_zm`.  Here, the Tampa sites are loaded.  You can view all possible locations in the kml file with `st_layers`.
+
+```{r}
+dat <- st_read(fl, layer = 'TAMPA') %>% 
+  st_zm()
+mapview(dat)
+```
+
+Unlink the temporary files to delete them when you are finished.
+
+```{r}
+unlink(tmp1, recursive = T)
+unlink(tmp2, recursive = T)
+```
+
