@@ -46,6 +46,7 @@ Get the name of the kml file to read.
 ```{r}
 lyr <- unzip(tmp1, list = T)$Name
 fl <- paste(c(tmp2, lyr), collapse = "\\")
+fl <- gsub('\\\\', '/', fl)
 ```
 
 Read the kml file with `st_read` and drop Z dimension with `st_zm`.  Here, the Tampa sites are loaded.  You can view all possible locations in the kml file with `st_layers`.
