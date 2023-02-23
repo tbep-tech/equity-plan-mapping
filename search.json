@@ -1,5 +1,26 @@
 [
   {
+    "objectID": "importing.html",
+    "href": "importing.html",
+    "title": "Importing additional spatial data",
+    "section": "",
+    "text": "library(sf)\nlibrary(mapview)"
+  },
+  {
+    "objectID": "importing.html#mined-units",
+    "href": "importing.html#mined-units",
+    "title": "Importing additional spatial data",
+    "section": "Mined Units",
+    "text": "Mined Units\nThe mined units can be read in directly with st_read.\n\nmined <- st_read('https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/MMP_MINEDUNITS/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')\n\nReading layer `OGRGeoJSON' from data source \n  `https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/MMP_MINEDUNITS/MapServer/0/query?outFields=*&where=1%3D1&f=geojson' \n  using driver `GeoJSON'\nSimple feature collection with 371 features and 10 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: -82.95369 ymin: 27.46063 xmax: -81.69582 ymax: 30.51925\nGeodetic CRS:  WGS 84\n\nmapview(mined)"
+  },
+  {
+    "objectID": "importing.html#brownfield-sites",
+    "href": "importing.html#brownfield-sites",
+    "title": "Importing additional spatial data",
+    "section": "Brownfield sites",
+    "text": "Brownfield sites\nDownload the zipped kml file to a temporary directory.\n\n# url with zipped kml\nurlin <- 'https://ordsext.epa.gov/FLA/www3/acres_frs.kmz'\n\n# download file\ntmp1 <- tempfile(fileext = \".kmz\")\ndownload.file(url = urlin, destfile = tmp1, method = 'curl')\n\nUnzip the kmz file.\n\ntmp2 <- tempdir()\nunzip(tmp1, exdir = tmp2)\n\nGet the name of the kml file to read.\n\nlyr <- unzip(tmp1, list = T)$Name\nfl <- paste(c(tmp2, lyr), collapse = \"\\\\\")\nfl <- gsub('\\\\\\\\', '/', fl)\n\nRead the kml file with st_read and drop Z dimension with st_zm. Here, the Tampa sites are loaded. You can view all possible locations in the kml file with st_layers.\n\ndat <- st_read(fl, layer = 'TAMPA') %>% \n  st_zm()\n\nReading layer `TAMPA' from data source `/tmp/Rtmpf6KkI0/ACRES_FRS.KML' using driver `LIBKML'\nSimple feature collection with 103 features and 12 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: -82.51857 ymin: 27.87108 xmax: -82.3533 ymax: 28.07826\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\nmapview(dat)"
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Getting EJScreen data",
