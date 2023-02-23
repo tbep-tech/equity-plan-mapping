@@ -56,11 +56,3 @@ dat <- st_read(fl, layer = 'TAMPA') %>%
   st_zm()
 mapview(dat)
 ```
-
-Unlink the temporary files to delete them when you are finished.
-
-```{r}
-unlink(tmp1, recursive = T)
-unlink(tmp2, recursive = T)
-```
-
