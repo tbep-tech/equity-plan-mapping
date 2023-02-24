@@ -35,7 +35,7 @@ Download the relevant file from EJScreen. The file is downloaded to a temporary 
 urlin <- 'https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip'
 
 # download file
-tmp1 <- tempfile(fileext = "zip")
+tmp1 <- tempfile(fileext = ".zip")
 download.file(url = urlin, destfile = tmp1)
 ```
 
@@ -43,7 +43,7 @@ Unzip the geodatabase that was downloaded to a second temporary directory.
 
 ```{r}
 # unzip file
-tmp2 <- tempfile()
+tmp2 <- tempdir()
 utils::unzip(tmp1, exdir = tmp2)
 ```
 
@@ -52,6 +52,7 @@ Read the polygon layer from the geodatabase.
 ```{r}
 # get the layers from the gdb
 gdbpth <- list.files(tmp2, pattern = '\\.gdb$', full.names = T)
+gdbpth <- gsub('\\\\', '/', gdbpth)
 lyr <- st_layers(gdbpth)$name
 
 # read the layer
@@ -93,8 +94,7 @@ save(dattb, file = 'data/dattb.RData')
 Unlink the temporary files to delete them when you are finished.
 
 ```{r}
-# remove temp files
 unlink(tmp1, recursive = TRUE)
-unlink(tmp2, recursive = TRUE)
+unlink(gdbpth, recursive = TRUE)
 ```
 
