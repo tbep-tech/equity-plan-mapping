@@ -64,7 +64,7 @@ unlink(tmp1, recursive = TRUE)
 unlink(fl, recursive = TRUE)
 ```
 
-## Anothere dataset
+## Another dataset
 
 Not sure what this one is... but process is similar except two zip files have to be unzipped. 
 
@@ -104,13 +104,13 @@ load(file = 'data/tbshed.RData')
 dattb2 <- dat %>% 
   st_intersection(tbshed)
 
-save(dattb2, file = 'here/dattb2.RData')
+save(dattb2, file = 'data/dattb2.RData')
 ```
 
 View the data. 
 
 ```{r}
-mapview(dat)
+mapview(dattb2)
 ```
 
 Remove temporary files.
