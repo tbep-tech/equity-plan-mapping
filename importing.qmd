@@ -63,3 +63,62 @@ Unlink the temporary files to delete them when you are finished.
 unlink(tmp1, recursive = TRUE)
 unlink(fl, recursive = TRUE)
 ```
+
+## Anothere dataset
+
+Not sure what this one is... but process is similar except two zip files have to be unzipped. 
+
+Download zip file to temp directory and unzip to temp directory.
+
+```{r}
+#| cache: true
+urlin <- 'https://static-data-screeningtool.geoplatform.gov/data-versions/1.0/data/score/downloadable/1.0-shapefile-codebook.zip'
+
+tmp1 <- tempfile(fileext = ".zip")
+download.file(url = urlin, destfile = tmp1)
+
+tmp2 <- tempdir()
+unzip(tmp1, exdir = tmp2)
+```
+
+Unzip usa.zip file. 
+
+```{r}
+zip1 <- list.files(tmp2, 'usa\\.zip', full.names = T)
+unzip(zip1, exdir = tmp2)
+```
+
+Get file path for usa.shp, import with sf. 
+
+```{r}
+fl <- list.files(tmp2, '\\.shp', full.names = T)
+dat <- st_read(fl)
+```
+
+Clip to Tampa Bay watershed boundaries. CRS is the same, so no need to transform. 
+
+```{r}
+#| cache: true
+load(file = 'data/tbshed.RData')
+
+dattb2 <- dat %>% 
+  st_intersection(tbshed)
+
+save(dattb2, file = 'here/dattb2.RData')
+```
+
+View the data. 
+
+```{r}
+mapview(dat)
+```
+
+Remove temporary files.
+
+```{r}
+unlink(tmp1, recursive = TRUE)
+unlink(zip1)
+fls <- list.files(tmp2, gsub('\\.shp$', '', basename(fl)), full.names = T)
+file.remove(fls)
+```
+
