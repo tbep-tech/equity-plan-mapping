@@ -57,6 +57,35 @@ dat <- st_read(fl, layer = 'TAMPA') %>%
 mapview(dat)
 ```
 
+To import all layers in the kml file, identify the layer names and loop through them to ad them to a single object.
+
+```{r}
+#| eval: false
+# layer names
+alllyr <- st_layers(fl)$name
+
+strt <- Sys.time()
+out <- NULL
+for(i in alllyr){
+  
+  # counter
+  cat(i, which(i == alllyr), 'of', length(alllyr), '\n')
+  print(Sys.time() - strt)
+  
+  # import each layer
+  dat <- st_read(fl, i, quiet = T)[, c('Name')]
+  
+  # append to same object
+  out <- rbind(out, dat)
+  
+}
+
+# save
+allbfld <- out %>% st_zm()
+save(allbfld, file = 'data/allbfld.RData', compress = 'xz')
+```
+
+
 Unlink the temporary files to delete them when you are finished.
 
 ```{r}
