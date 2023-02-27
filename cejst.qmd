@@ -1,0 +1,234 @@
+---
+title: "Getting environmental justice data"
+format: html
+editor: source
+
+execute:
+  eval: false
+  warning: false
+  message: false
+  echo: true
+---
+
+Under the new Equity Strategy, our goal is to ensure at least 40% of the benefits from TBEP activities are directed to underserved communities (see "Mapping underserved communities"). Many of these underserved communities are also disproportionately burdened by pollution, expected impacts from climate change, and lack of green space. Understanding which communities face different burdens can help TBEP prioritize different activities to help mitigate or reduce the burdens facing these communities.
+
+TBEP has selected the following 12 factors representing (1) those most relevant to the burdens facing communities in Tampa Bay and (2) environmental injustices that could be reduced by the benefits of TBEP activities:
+
+-   Climate Change
+    -   Projected agricultural loss under climate change
+    -   Projected flood risk under climate change
+-   Nature Deprivation
+    -   Lack of green space
+-   Air Pollution
+    -   PM 2.5
+    -   Traffic proximity/volume
+-   Water Pollution
+    -   Wastewater discharge
+-   Other Pollution
+    -   Hazardous waste facilities
+    -   Underground storage tanks and release
+    -   Superfund sites
+    -   Brownfield sites
+    -   Phosphate mines
+-   Legacy Effects
+    -   Historic underinvestment (redlining)
+
+Below, we have provided instructions for downloading, cleaning, and analyzing the data that will be used to characterize the burdens facing communities in Tampa Bay. To view instructions for utilizing the final data to map underserved and overburdened communities, see "Mapping underserved and overburdened communities."
+
+The method described below is presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step and using analogous GIS tools.
+
+Load the required R packages (install first as needed, tbeptools installation instructions are [here](https://tbep-tech.github.io/tbeptools/))
+
+```{r}
+#| eval: true
+library(sf)
+library(mapview)
+library(dplyr)
+```
+
+## CEJST Data
+
+The U.S. Council on Environmental Quality has developed the Climate and Economic Justice Screening Tool ([CEJST](https://screeningtool.geoplatform.gov/en/about)) to assist users in identifying overburdened communities using a similar methodology as EJScreen, in which national percentiles are used as thresholds for flagging census tracts that are significantly burdened by one or more indicators spanning climate change, energy, health, housing, pollution, and other dimensions. The data is available from <https://screeningtool.geoplatform.gov/en/downloads>.
+
+CEJST provides the percentiles we need for 10 out of the 12 variables we use for identifying overburdened communities. Below are brief descriptions of the variables and how they are estimated, and more information about the data, sources, and methodologies can be found [here](https://screeningtool.geoplatform.gov/en/methodology).
+
+-   *Expected agricultural loss rate*: Expected agricultural value at risk from losses due to fourteen types of natural hazards linked to climate change.
+-   *Projected flood risk*: Number of properties at risk of floods occurring in the next 30 years from tides, rain, riverine or storm surges based on a climate-adjusted model.
+-   *PM2.5 in the air*: Weight of fine inhalable particles (\< 2.5 micrometers in diameter) per cubic meter.
+-   *Historic underinvestment*: Census tracts that experienced historic underinvestment based on redlining maps created between 1935-1940.
+-   *Lack of green space*: Share of land with developed surfaces covered with artificial materials (e.g. concrete, pavement).
+-   *Proximity to hazardous waste facilities*: Number of hazardous waste facilities within 5 km (or nearest beyond 5 km) divided by distance.
+-   *Proximity to Superfund sites*: Number of proposed or listed Superfund or National Priorities list (NPL) sites within 5 km (or nearest beyond 5 km) divided by distance.
+-   *Traffic proximity and volume*: Number of vehicles (average annual daily traffic) at major roads within 500 m, divided by distance.
+-   *Underground storage tanks and releases*: Density of leaking underground storage tanks divided by all active underground storage tanks within 1,500 ft.
+-   *Wastewater discharge*: Modeled toxic concentrations in stream segments within 500 m, divided by distance.
+
+Download the CEJST zip file to temp directory and unzip to temp directory.
+
+```{r}
+#| cache: true
+urlin <- 'https://static-data-screeningtool.geoplatform.gov/data-versions/1.0/data/score/downloadable/1.0-shapefile-codebook.zip'
+
+tmp1 <- tempfile(fileext = ".zip")
+download.file(url = urlin, destfile = tmp1)
+
+tmp2 <- tempdir()
+unzip(tmp1, exdir = tmp2)
+```
+
+Unzip the 'usa.zip' file in the folder.
+
+```{r}
+zip1 <- list.files(tmp2, 'usa\\.zip', full.names = T)
+unzip(zip1, exdir = tmp2)
+```
+
+Get file path for 'usa.shp' and import with sf.
+
+```{r}
+cejst <- list.files(tmp2, '\\.shp', full.names = T)
+datcejst <- st_read(cejst)
+```
+
+To exclude census tracts outside of our watershed boundary, intersect the layer with the Tampa Bay watershed. If working in a different area, you will want to replace the `tbshed` shapefile with your own boundary file. In this case, the coordinate system is the same, so there's no need to transform.
+
+```{r}
+#| cache: true
+load(file = 'data/tbshed.RData')
+
+dattbcejst <- datcejst %>% 
+  st_intersection(tbshed)
+
+save(dattbcejst, file = 'data/dattbcejst.RData')
+```
+
+View the data. It will look similar to the EJScreen data.
+
+```{r}
+mapview(dattbcejst)
+```
+
+Unfortunately, the census tracts from CEJST are not completely identical to the census tracts in EJScreen. The tracts provided by CEJST, when they do differ, are primarily at a larger scale (e.g., one CEJST tract may be split into 2 tracts in EJScreen data). We prefer to work from the higher resolution tracts (EJScreen), so we need to make sure, for each EJScreen tract, we pull the relevant data from the CEJST tract. Notably, some of the resulting tract data may not be entirely accurate, as percentiles may apply to the larger CEJST tract but not necessarily to the tracts as split by the EJScreen data. As of February 2023, the tract boundaries between EJScreen and CEJST have yet to be harmonized, but this may change in future versions of these tools.
+
+If you've already created the 'dattbindex' shapefile from "Mapping underserved communities," you can simply load that shapefile. Here, we'll load the 'dattb' shapefile and quickly replicate the creation of 'dattbindex' as a reminder.
+
+```{r}
+load(file = 'data/dattb.RData')
+
+dattbindex <- dattb %>%
+  filter(ACSTOTPOP > 0) %>%
+  mutate(threshold_income = ifelse(P_LWINCPCT >= 80, 1, 0),
+         threshold_unempl = ifelse(P_UNEMPPCT >= 80, 1, 0),
+         threshold_lingui = ifelse(P_LNGISPCT >= 80, 1, 0),
+         threshold_educat = ifelse(P_LESHSPCT >= 80, 1, 0),
+         threshold_lifexp = ifelse(P_LIFEEXPCT >= 80, 1, 0)) %>%
+  rowwise() %>%
+  select(matches('^threshold|^ID')) %>% 
+  mutate(threshold_N = sum(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, na.rm = TRUE)) %>%
+  mutate(underserved = ifelse(threshold_N > 1, "Yes", "No"))
+```
+
+Keep only those tracts that are classified as underserved.
+
+```{r}
+dattbunder <- dattbindex %>%
+  filter(underserved == "Yes")
+
+mapview(dattbunder)
+```
+
+We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into 'dattbunder'. Similar to the thresholds defined for identifying underserved communities, we define "overburdened" communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.
+
+```{r}
+cejstvalues <- st_point_on_surface(dattbunder) %>%
+  st_intersection(dattbcejst) %>%
+  mutate(thresholdEJ_agloss = ifelse(EALR_PFS >= 0.80, 1, 0),
+         thresholdEJ_floodr = ifelse(FLD_PFS >= 0.80, 1, 0),
+         thresholdEJ_greens = ifelse(IS_PFS >= 0.80, 1, 0),
+         thresholdEJ_pm2.5 = ifelse(PM25F_PFS >= 0.80, 1, 0),
+         thresholdEJ_trafic = ifelse(TF_PFS >= 0.80, 1, 0),
+         thresholdEJ_wastew = ifelse(WF_PFS >= 0.80, 1, 0),
+         thresholdEJ_hwaste = ifelse(TSDF_PFS >= 0.80, 1, 0),
+         thresholdEJ_ugtank = ifelse(UST_PFS >= 0.80, 1, 0),
+         thresholdEJ_sfunds = ifelse(NPL_PFS >= 0.80, 1, 0),
+         thresholdEJ_redlin = ifelse(HRS_ET >= 0.80, 1, 0)) %>%
+  rowwise() %>%
+  select(matches('^thresholdEJ|^ID')) %>%
+  as.data.frame()
+
+dattbunder_cejst <- left_join(dattbunder, cejstvalues, by = 'ID')
+```
+
+## Mining Data
+
+Although CEJST provides data on abandoned coal mines, phosphate mining is a unique characteristic of Florida, and especially Tampa Bay. Of the 78 phosphate mining operations in the U.S. recorded by the [U.S. Geological Survey](https://mrdata.usgs.gov/phosphate/), 29 (37%) are located in Florida, and 13 (17%) are within the Tampa Bay watershed. The potential impacts of phosphate mining are thus a unique burden to communities in our watershed, which is why we have opted to include phosphate rather than coal mines in our identification of overburdened communities.
+
+Spatial data is available from the Florida Department of Environmental Protection (FDEP) [here](https://geodata.dep.state.fl.us/datasets/FDEP::mandatory-phosphate-mined-units/about). This is provided as a polygon layer, showing all active mandatory phosphate mines in Florida as of 2019. See the FDEP website for more details on the dataset.
+
+The shapefile can be read in directly with `st_read`.
+
+```{r}
+mined <- st_read('https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/MMP_MINEDUNITS/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')
+mapview(mined)
+```
+
+CEJST considers any census tract containing abandoned coal mines to be significantly burdened. We adopt the same approach for phosphate mines in Tampa Bay. Create an indicator for tracts that overlap with the phosphate mining units.
+
+```{r}
+sf_use_s2(FALSE)
+
+maxval <- dattbunder_cejst %>%
+  st_join(mined) %>%
+  mutate(SITE_ID = coalesce(SITE_ID, 0)) %>% 
+  mutate(dummyvar = ifelse(SITE_ID > 0, 1, 0)) %>%
+  group_by(ID) %>%
+  summarise(thresholdEJ_phmine = max(dummyvar)) %>%
+  as.data.frame()
+
+dattbunder_cejst_mines <- left_join(dattbunder_cejst, maxval, by = 'ID')
+```
+
+## Brownfield Data
+
+Properties in which expansion, redevelopment, or reuse may be complicated by the potential presence of contaminants, called "brownfields," are another important burden to some communities in Tampa Bay. While CEJST and EJScreen do not include the proximity of census tracts to brownfield sites in their national percentiles, the EPA hosts a database with the lat/lon coordinates of brownfield properties, called the Assessment, Cleanup, and Redevelopment Exchange System (ACRES). The data is available as KML point data [here](https://www.epa.gov/frs/geospatial-data-download-service).
+
+Download the zipped KML file to a temporary directory.
+
+```{r}
+# url with zipped kml
+urlin <- 'https://ordsext.epa.gov/FLA/www3/acres_frs.kmz'
+
+# download file
+tmp1 <- tempfile(fileext = ".kmz")
+download.file(url = urlin, destfile = tmp1, method = 'curl')
+```
+
+Unzip the KMZ file.
+
+```{r}
+tmp2 <- tempdir()
+unzip(tmp1, exdir = tmp2)
+```
+
+Get the name of the KML file to read.
+
+```{r}
+lyr <- unzip(tmp1, list = T)$Name
+fl <- paste(c(tmp2, lyr), collapse = "\\")
+fl <- gsub('\\\\', '/', fl)
+```
+
+Read the KML file with `st_read` and drop the Z dimension with `st_zm`. Here, the Tampa sites are loaded. You can view all possible locations in the kml file with `st_layers`.
+
+```{r}
+dat <- st_read(fl, layer = 'TAMPA') %>% 
+  st_zm()
+mapview(dat)
+```
+
+Unlink the temporary files to delete them when you are finished.
+
+```{r}
+unlink(tmp1, recursive = TRUE)
+unlink(fl, recursive = TRUE)
+```
