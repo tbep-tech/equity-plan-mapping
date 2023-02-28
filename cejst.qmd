@@ -145,6 +145,11 @@ dattbindex <- dattb %>%
 Keep only those tracts that are classified as underserved.
 
 ```{r}
+#| echo: false
+#| eval: true
+load(file = 'data/dattbindex.RData')
+```
+```{r}
 #| eval: true
 dattbunder <- dattbindex %>%
   filter(underserved == "Yes")
