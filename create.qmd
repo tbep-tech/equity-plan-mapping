@@ -87,7 +87,6 @@ mapview(dattbindex, zcol = "underserved", col.regions = list("gray","red"))
 You can save this final data as an RData object for future use.
 
 ```{r}
-#| eval: false
 # save the layer as an RData object
 save(dattbindex, file = 'data/dattbindex.RData')
 ```

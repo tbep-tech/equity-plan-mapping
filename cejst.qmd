@@ -109,6 +109,12 @@ save(dattbcejst, file = 'data/dattbcejst.RData')
 View the data. It will look similar to the EJScreen data.
 
 ```{r}
+#| echo: false
+#| eval: true
+load(file = 'data/dttbcejst.RData')
+```
+```{r}
+#| eval: true
 mapview(dattbcejst)
 ```
 
@@ -139,6 +145,7 @@ dattbindex <- dattb %>%
 Keep only those tracts that are classified as underserved.
 
 ```{r}
+#| eval: true
 dattbunder <- dattbindex %>%
   filter(underserved == "Yes")
 
@@ -275,6 +282,7 @@ write.csv(allbfldcsv, 'data/allbfldcsv.csv', row.names = F)
 Load and view the brownfield sites.
 
 ```{r}
+#| eval: true
 load(file = 'data/allbfld.RData')
 mapview(allbfld, legend = F, col.regions = 'brown')
 ```
