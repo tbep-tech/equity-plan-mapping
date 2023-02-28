@@ -58,7 +58,7 @@ dat <- st_read(fl, layer = 'TAMPA') %>%
 mapview(dat)
 ```
 
-To import all layers in the kml file, identify the layer names and loop through them to add to a single object.  This takes several hours. The data are saved as an [.Rdata object](https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/allbfld.RData) and [.csv file](https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/dattb.csv) for later use.  The data include only the site name and location in decimal degrees.
+To import all layers in the kml file, identify the layer names and loop through them to add to a single object.  This takes several hours. The data are saved as an [.Rdata object](https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/allbfld.RData) and [.csv file](https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/allbfldcsv.csv) for later use.  The data include only the site name and location in decimal degrees.
 
 ```{r}
 #| eval: false
