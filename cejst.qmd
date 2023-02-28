@@ -347,7 +347,8 @@ Save this final layer as an RData object for future use.
 ```{r}
 #| eval: false
 # save the layer as an RData object
-save(dattbunder_cejst_mines_bfields, file = 'data/dattbunderover.RData')
+dattbunderover <- dattbunder_cejst_mines_bfields
+save(dattbunderover, file = 'data/dattbunderover.RData')
 ```
 
 Unlink the temporary files to delete them when you are finished.

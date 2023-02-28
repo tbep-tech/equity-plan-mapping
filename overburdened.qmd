@@ -45,7 +45,7 @@ mapview(dattbunderover, zcol = "overburdened", col.regions = list("gray","red"),
 You can see that all but 3 underserved tracts in our watershed are also considered overburdened by one or more EJ issue. Run the code below to create a field listing the major EJ issues facing each community, which you can view in the map by hovering your cursor over a tract. 
 
 ```{r}
-dattbunderover <- dattbunder_cejst_mines_bfields %>%
+dattbunderover <- dattbunderover %>%
   mutate(CC = ifelse(thresholdEJ_agloss == 1 | thresholdEJ_floodr == 1, "Climate Change", NA),
          NP = ifelse(thresholdEJ_greens == 1, "Nature Deprevation", NA),
          AP = ifelse(thresholdEJ_pm2.5 == 1 | thresholdEJ_trafic == 1, "Air Pollution", NA),
