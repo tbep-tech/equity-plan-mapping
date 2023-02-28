@@ -111,7 +111,7 @@ View the data. It will look similar to the EJScreen data.
 ```{r}
 #| echo: false
 #| eval: true
-load(file = 'data/dttbcejst.RData')
+load(file = 'data/dattbcejst.RData')
 ```
 ```{r}
 #| eval: true
