@@ -37,13 +37,14 @@ Below, we have provided instructions for downloading, cleaning, and analyzing th
 
 The method described below is presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step and using analogous GIS tools.
 
-Load the required R packages (install first as needed, tbeptools installation instructions are [here](https://tbep-tech.github.io/tbeptools/))
+Load the required R packages (install first as needed).
 
 ```{r}
 #| eval: true
 library(sf)
 library(mapview)
 library(dplyr)
+library(RColorBrewer)
 ```
 
 ## CEJST Data
@@ -113,6 +114,10 @@ Unfortunately, the census tracts from CEJST are not completely identical to the 
 If you've already created the 'dattbindex' shapefile from "Mapping underserved communities," you can simply load that shapefile. Here, we'll load the 'dattb' shapefile and quickly replicate the creation of 'dattbindex' as a reminder.
 
 ```{r}
+# if saved
+load(file = 'data/dattbindex.Rdata')
+
+# otherwise replicate
 load(file = 'data/dattb.RData')
 
 dattbindex <- dattb %>%
@@ -134,7 +139,7 @@ Keep only those tracts that are classified as underserved.
 dattbunder <- dattbindex %>%
   filter(underserved == "Yes")
 
-mapview(dattbunder)
+mapview(dattbunder, layer.name = "Underserved Communities")
 ```
 
 We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into 'dattbunder'. Similar to the thresholds defined for identifying underserved communities, we define "overburdened" communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.
@@ -218,17 +223,134 @@ fl <- paste(c(tmp2, lyr), collapse = "\\")
 fl <- gsub('\\\\', '/', fl)
 ```
 
-Read the KML file with `st_read` and drop the Z dimension with `st_zm`. Here, the Tampa sites are loaded. You can view all possible locations in the kml file with `st_layers`.
+Read the KML file with `st_read` and drop the Z dimension with `st_zm`. If you would like to only view brownfield sites in a particular area, below is an example for loading just the sites in the Tampa layer. You can view all possible locations in the kml file with `st_layers`. However, we need to create our brownfield metric using the nation-wide data, so you can skip this step.
 
 ```{r}
 dat <- st_read(fl, layer = 'TAMPA') %>% 
   st_zm()
-mapview(dat)
+```
+
+To import all layers in the kml file, identify the layer names and loop through them to add to a single object. The data are saved as an [.Rdata object](https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/allbfld.RData) and [.csv file](https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/allbfldcsv.csv) for later use. The data include only the site name and location in decimal degrees.
+
+*NOTE: This code takes several hours to complete. We have provided the code so that you may replicate this approach if desired, but for the sake of time, we recommend loading the Rdata object we have saved already (next step).*
+
+```{r}
+#| eval: false
+# layer names
+alllyr <- st_layers(fl)$name
+
+strt <- Sys.time()
+out <- NULL
+for(i in alllyr){
+  
+  # counter
+  cat(i, which(i == alllyr), 'of', length(alllyr), '\n')
+  print(Sys.time() - strt)
+  
+  # import each layer
+  dat <- st_read(fl, i, quiet = T)[, c('Name')]
+  
+  # append to same object
+  out <- rbind(out, dat)
+  
+}
+
+# save as RData object
+allbfld <- out %>% st_zm()
+save(allbfld, file = 'data/allbfld.RData', compress = 'xz')
+
+# save as csv
+allbfldcsv <- allbfld %>% 
+  mutate(
+    lon = st_coordinates(.)[,1], 
+    lat = st_coordinates(.)[,2]
+  ) %>% 
+  st_set_geometry(NULL)
+write.csv(allbfldcsv, 'data/allbfldcsv.csv', row.names = F)
+```
+
+Load and view the brownfield sites.
+
+```{r}
+load(file = 'data/allbfld.RData')
+mapview(allbfld, legend = F, col.regions = 'brown')
+```
+
+You can see the locations of all brownfield sites from the ACRES database across the country. We will use this data in a manner consistent with how CEJST measures a community's proximity to hazardous waste facilities and Superfund sites.
+
+Load the national census tract data from EJScreen if you have it saved from "Getting EJScreen data." If not, download the data again using the same steps as before.
+
+```{r}
+# url with zip gdb to download
+urlin <- 'https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip'
+
+# download file
+tmp1 <- tempfile(fileext = ".zip")
+download.file(url = urlin, destfile = tmp1)
+
+# unzip file
+tmp2 <- tempdir()
+utils::unzip(tmp1, exdir = tmp2)
+
+# get the layers from the gdb
+gdbpth <- list.files(tmp2, pattern = '\\.gdb$', full.names = T)
+gdbpth <- gsub('\\\\', '/', gdbpth)
+lyr <- st_layers(gdbpth)$name
+
+# read the layer, keep only the tract ID to reduce size
+ejscreen <- st_read(dsn = gdbpth, lyr) %>%
+  rowwise() %>%
+  select(matches('^ID')) 
+```
+
+First, we need to transform the brownfield and national EJScreen census tract data to an appropriate projected coordinate system so we can reliably calculate distances. For the U.S. (including Alaska and Hawaii), we will use the North America Albers Equal Area Conic (EPSG: 9822) projection.
+
+```{r}
+bfields <- st_transform(allbfld, crs = 9822)
+tracts <- st_transform(ejscreen, crs = 9822)
+```
+
+In line with the methodology for calculating proximity to hazardous waste facilities and Superfund sites, we will calculate each census tract's proximity to brownfield sites as (1) the number of brownfield sites within 5 km of the tract divided by 5 km, or (2) if there are no sites within 5 km, then 1 divided by the distance to the nearest site. We will use Euclidean distances. Note that the units for distances will be in meters.
+
+```{r}
+# 5 km buffer (this will take several minutes)
+tractsbuff <- st_buffer(tracts, dist = 5000, endCapStyle = "ROUND")
+
+# number of brownfield sites within 5 km
+tractsbuff$brownfields_N <- lengths(st_intersects(tractsbuff, bfields))
+
+# distance to nearest brownfield site
+nearest <- st_nearest_feature(tracts, bfields)
+distance <- st_distance(tracts, bfields[nearest,], by_element=TRUE)
+joined <- cbind(tracts, st_drop_geometry(bfields)[nearest,]) %>%
+  mutate(dist_m = distance) %>%
+  as.data.frame()
+
+proxbfield <- left_join(tractsbuff, joined, by = 'ID') %>%
+  as.data.frame() %>%
+  mutate(proximity = ifelse(brownfields_N > 0, brownfields_N/5000, 1/dist_m),
+         percentile = ntile(proximity, 100),
+         thresholdEJ_bfield = ifelse(percentile >= 80, 1, 0))
+
+dattbunder_cejst_mines_bfields <- left_join(dattbunder_cejst_mines, proxbfield, by = 'ID') %>%
+  mutate(thresholdEJ_N = sum(thresholdEJ_agloss,thresholdEJ_floodr,thresholdEJ_greens,thresholdEJ_pm2.5,thresholdEJ_trafic,thresholdEJ_wastew,thresholdEJ_hwaste,thresholdEJ_ugtank,thresholdEJ_sfunds,thresholdEJ_redlin,thresholdEJ_phmine,thresholdEJ_bfield, na.rm = TRUE)) %>%
+  mutate(overburdened = ifelse(thresholdEJ_N > 0, "Yes", "No")) %>%
+    rowwise() %>%
+  select(matches('^threshold|^ID|^under|^over'))
+```
+
+Save this final layer as an RData object for future use.
+
+```{r}
+#| eval: false
+# save the layer as an RData object
+save(dattbunder_cejst_mines_bfields, file = 'data/dattbunderover.RData')
 ```
 
 Unlink the temporary files to delete them when you are finished.
 
 ```{r}
 unlink(tmp1, recursive = TRUE)
+unlink(gdbpth, recursive = TRUE)
 unlink(fl, recursive = TRUE)
 ```
