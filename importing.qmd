@@ -98,6 +98,7 @@ write.csv(allbfldcsv, 'data/allbfldcsv.csv', row.names = F)
 View all brownfield sites.
 
 ```{r}
+load(file = 'data/allbfld.RData')
 mapview(allbfld, legend = F, col.regions = 'grey')
 ```
 
