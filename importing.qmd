@@ -10,6 +10,7 @@ execute:
 ```{r}
 library(sf)
 library(mapview)
+library(dplyr)
 ```
 
 ## Mined Units 
@@ -57,7 +58,7 @@ dat <- st_read(fl, layer = 'TAMPA') %>%
 mapview(dat)
 ```
 
-To import all layers in the kml file, identify the layer names and loop through them to ad them to a single object.
+To import all layers in the kml file, identify the layer names and loop through them to add to a single object.  This takes several hours. The data are saved as an [.Rdata object](https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/allbfld.RData) and [.csv file](https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/dattb.csv) for later use.  The data include only the site name and location in decimal degrees.
 
 ```{r}
 #| eval: false
@@ -80,11 +81,25 @@ for(i in alllyr){
   
 }
 
-# save
+# save as RData object
 allbfld <- out %>% st_zm()
 save(allbfld, file = 'data/allbfld.RData', compress = 'xz')
+
+# save as csv
+allbfldcsv <- allbfld %>% 
+  mutate(
+    lon = st_coordinates(.)[,1], 
+    lat = st_coordinates(.)[,2]
+  ) %>% 
+  st_set_geometry(NULL)
+write.csv(allbfldcsv, 'data/allbfldcsv.csv', row.names = F)
 ```
 
+View all brownfield sites.
+
+```{r}
+mapview(allbfld, legend = F, col.regions = 'grey')
+```
 
 Unlink the temporary files to delete them when you are finished.
 
@@ -93,11 +108,11 @@ unlink(tmp1, recursive = TRUE)
 unlink(fl, recursive = TRUE)
 ```
 
-## Another dataset
+## Census tracts
 
-Not sure what this one is... but process is similar except two zip files have to be unzipped. 
+This workflow demonstrates how to download census tracts for the United States.
 
-Download zip file to temp directory and unzip to temp directory.
+Download the zip file to a temporary directory and unzip to a second temporary directory.
 
 ```{r}
 #| cache: true
@@ -110,36 +125,36 @@ tmp2 <- tempdir()
 unzip(tmp1, exdir = tmp2)
 ```
 
-Unzip usa.zip file. 
+The `usa.zip` file was included in the previously zipped file.  Unzip `usa.zip` file. 
 
 ```{r}
 zip1 <- list.files(tmp2, 'usa\\.zip', full.names = T)
 unzip(zip1, exdir = tmp2)
 ```
 
-Get file path for usa.shp, import with sf. 
+Get the file path for `usa.shp` and import with the sf package. 
 
 ```{r}
 fl <- list.files(tmp2, '\\.shp', full.names = T)
-dat <- st_read(fl)
+tracts <- st_read(fl)
 ```
 
-Clip to Tampa Bay watershed boundaries. CRS is the same, so no need to transform. 
+Clip to the Tampa Bay watershed boundaries using the `tbshed` spatial object. The CRS is the same, so there is no need to transform. 
 
 ```{r}
 #| cache: true
 load(file = 'data/tbshed.RData')
 
-dattb2 <- dat %>% 
+tbtracts <- tracts %>% 
   st_intersection(tbshed)
 
-save(dattb2, file = 'data/dattb2.RData')
+save(tbtracts, file = 'data/tbtracts.RData')
 ```
 
 View the data. 
 
 ```{r}
-mapview(dattb2)
+mapview(tbtracts)
 ```
 
 Remove temporary files.
