@@ -227,11 +227,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 <p>Below, we have provided instructions for downloading, cleaning, and analyzing the data that will be used to characterize the burdens facing communities in Tampa Bay. To view instructions for utilizing the final data to map underserved and overburdened communities, see “Mapping underserved and overburdened communities.”</p>
 <p>The method described below is presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step and using analogous GIS tools.</p>
-<p>Load the required R packages (install first as needed, tbeptools installation instructions are <a href="https://tbep-tech.github.io/tbeptools/">here</a>)</p>
+<p>Load the required R packages (install first as needed).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mapview)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RColorBrewer)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="cejst-data" class="level2">
 <h2 class="anchored" data-anchor-id="cejst-data">CEJST Data</h2>
@@ -285,26 +286,30 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Unfortunately, the census tracts from CEJST are not completely identical to the census tracts in EJScreen. The tracts provided by CEJST, when they do differ, are primarily at a larger scale (e.g., one CEJST tract may be split into 2 tracts in EJScreen data). We prefer to work from the higher resolution tracts (EJScreen), so we need to make sure, for each EJScreen tract, we pull the relevant data from the CEJST tract. Notably, some of the resulting tract data may not be entirely accurate, as percentiles may apply to the larger CEJST tract but not necessarily to the tracts as split by the EJScreen data. As of February 2023, the tract boundaries between EJScreen and CEJST have yet to be harmonized, but this may change in future versions of these tools.</p>
 <p>If you’ve already created the ‘dattbindex’ shapefile from “Mapping underserved communities,” you can simply load that shapefile. Here, we’ll load the ‘dattb’ shapefile and quickly replicate the creation of ‘dattbindex’ as a reminder.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="at">file =</span> <span class="st">'data/dattb.RData'</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>dattbindex <span class="ot">&lt;-</span> dattb <span class="sc">%&gt;%</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ACSTOTPOP <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">threshold_income =</span> <span class="fu">ifelse</span>(P_LWINCPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">threshold_unempl =</span> <span class="fu">ifelse</span>(P_UNEMPPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">threshold_lingui =</span> <span class="fu">ifelse</span>(P_LNGISPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">threshold_educat =</span> <span class="fu">ifelse</span>(P_LESHSPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">threshold_lifexp =</span> <span class="fu">ifelse</span>(P_LIFEEXPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">matches</span>(<span class="st">'^threshold|^ID'</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">threshold_N =</span> <span class="fu">sum</span>(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">underserved =</span> <span class="fu">ifelse</span>(threshold_N <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># if saved</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="at">file =</span> <span class="st">'data/dattbindex.Rdata'</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># otherwise replicate</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="at">file =</span> <span class="st">'data/dattb.RData'</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>dattbindex <span class="ot">&lt;-</span> dattb <span class="sc">%&gt;%</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ACSTOTPOP <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">threshold_income =</span> <span class="fu">ifelse</span>(P_LWINCPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">threshold_unempl =</span> <span class="fu">ifelse</span>(P_UNEMPPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">threshold_lingui =</span> <span class="fu">ifelse</span>(P_LNGISPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">threshold_educat =</span> <span class="fu">ifelse</span>(P_LESHSPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">threshold_lifexp =</span> <span class="fu">ifelse</span>(P_LIFEEXPCT <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">matches</span>(<span class="st">'^threshold|^ID'</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">threshold_N =</span> <span class="fu">sum</span>(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">underserved =</span> <span class="fu">ifelse</span>(threshold_N <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Keep only those tracts that are classified as underserved.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>dattbunder <span class="ot">&lt;-</span> dattbindex <span class="sc">%&gt;%</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(underserved <span class="sc">==</span> <span class="st">"Yes"</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(dattbunder)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(dattbunder, <span class="at">layer.name =</span> <span class="st">"Underserved Communities"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into ‘dattbunder’. Similar to the thresholds defined for identifying underserved communities, we define “overburdened” communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.</p>
 <div class="cell">
@@ -374,16 +379,117 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>fl <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">c</span>(tmp2, lyr), <span class="at">collapse =</span> <span class="st">"</span><span class="sc">\\</span><span class="st">"</span>)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>fl <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">'</span><span class="sc">\\\\</span><span class="st">'</span>, <span class="st">'/'</span>, fl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Read the KML file with <code>st_read</code> and drop the Z dimension with <code>st_zm</code>. Here, the Tampa sites are loaded. You can view all possible locations in the kml file with <code>st_layers</code>.</p>
+<p>Read the KML file with <code>st_read</code> and drop the Z dimension with <code>st_zm</code>. If you would like to only view brownfield sites in a particular area, below is an example for loading just the sites in the Tampa layer. You can view all possible locations in the kml file with <code>st_layers</code>. However, we need to create our brownfield metric using the nation-wide data, so you can skip this step.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">st_read</span>(fl, <span class="at">layer =</span> <span class="st">'TAMPA'</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_zm</span>()</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_zm</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To import all layers in the kml file, identify the layer names and loop through them to add to a single object. The data are saved as an <a href="https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/allbfld.RData">.Rdata object</a> and <a href="https://github.com/tbep-tech/equity-plan-mapping/raw/main/data/allbfldcsv.csv">.csv file</a> for later use. The data include only the site name and location in decimal degrees.</p>
+<p><em>NOTE: This code takes several hours to complete. We have provided the code so that you may replicate this approach if desired, but for the sake of time, we recommend loading the Rdata object we have saved already (next step).</em></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># layer names</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>alllyr <span class="ot">&lt;-</span> <span class="fu">st_layers</span>(fl)<span class="sc">$</span>name</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>strt <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> alllyr){</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># counter</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(i, <span class="fu">which</span>(i <span class="sc">==</span> alllyr), <span class="st">'of'</span>, <span class="fu">length</span>(alllyr), <span class="st">'</span><span class="sc">\n</span><span class="st">'</span>)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">Sys.time</span>() <span class="sc">-</span> strt)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># import each layer</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">&lt;-</span> <span class="fu">st_read</span>(fl, i, <span class="at">quiet =</span> T)[, <span class="fu">c</span>(<span class="st">'Name'</span>)]</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># append to same object</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">rbind</span>(out, dat)</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="co"># save as RData object</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>allbfld <span class="ot">&lt;-</span> out <span class="sc">%&gt;%</span> <span class="fu">st_zm</span>()</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(allbfld, <span class="at">file =</span> <span class="st">'data/allbfld.RData'</span>, <span class="at">compress =</span> <span class="st">'xz'</span>)</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a><span class="co"># save as csv</span></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>allbfldcsv <span class="ot">&lt;-</span> allbfld <span class="sc">%&gt;%</span> </span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">lon =</span> <span class="fu">st_coordinates</span>(.)[,<span class="dv">1</span>], </span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">lat =</span> <span class="fu">st_coordinates</span>(.)[,<span class="dv">2</span>]</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_set_geometry</span>(<span class="cn">NULL</span>)</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(allbfldcsv, <span class="st">'data/allbfldcsv.csv'</span>, <span class="at">row.names =</span> F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Load and view the brownfield sites.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="at">file =</span> <span class="st">'data/allbfld.RData'</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mapview</span>(allbfld, <span class="at">legend =</span> F, <span class="at">col.regions =</span> <span class="st">'brown'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>You can see the locations of all brownfield sites from the ACRES database across the country. We will use this data in a manner consistent with how CEJST measures a community’s proximity to hazardous waste facilities and Superfund sites.</p>
+<p>Load the national census tract data from EJScreen if you have it saved from “Getting EJScreen data.” If not, download the data again using the same steps as before.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># url with zip gdb to download</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>urlin <span class="ot">&lt;-</span> <span class="st">'https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip'</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># download file</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>tmp1 <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">".zip"</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(<span class="at">url =</span> urlin, <span class="at">destfile =</span> tmp1)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co"># unzip file</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>tmp2 <span class="ot">&lt;-</span> <span class="fu">tempdir</span>()</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>utils<span class="sc">::</span><span class="fu">unzip</span>(tmp1, <span class="at">exdir =</span> tmp2)</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="co"># get the layers from the gdb</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>gdbpth <span class="ot">&lt;-</span> <span class="fu">list.files</span>(tmp2, <span class="at">pattern =</span> <span class="st">'</span><span class="sc">\\</span><span class="st">.gdb$'</span>, <span class="at">full.names =</span> T)</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>gdbpth <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">'</span><span class="sc">\\\\</span><span class="st">'</span>, <span class="st">'/'</span>, gdbpth)</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>lyr <span class="ot">&lt;-</span> <span class="fu">st_layers</span>(gdbpth)<span class="sc">$</span>name</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="co"># read the layer, keep only the tract ID to reduce size</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>ejscreen <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> gdbpth, lyr) <span class="sc">%&gt;%</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">matches</span>(<span class="st">'^ID'</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>First, we need to transform the brownfield and national EJScreen census tract data to an appropriate projected coordinate system so we can reliably calculate distances. For the U.S. (including Alaska and Hawaii), we will use the North America Albers Equal Area Conic (EPSG: 9822) projection.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>bfields <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(allbfld, <span class="at">crs =</span> <span class="dv">9822</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>tracts <span class="ot">&lt;-</span> <span class="fu">st_transform</span>(ejscreen, <span class="at">crs =</span> <span class="dv">9822</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>In line with the methodology for calculating proximity to hazardous waste facilities and Superfund sites, we will calculate each census tract’s proximity to brownfield sites as (1) the number of brownfield sites within 5 km of the tract divided by 5 km, or (2) if there are no sites within 5 km, then 1 divided by the distance to the nearest site. We will use Euclidean distances. Note that the units for distances will be in meters.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 5 km buffer (this will take several minutes)</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>tractsbuff <span class="ot">&lt;-</span> <span class="fu">st_buffer</span>(tracts, <span class="at">dist =</span> <span class="dv">5000</span>, <span class="at">endCapStyle =</span> <span class="st">"ROUND"</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># number of brownfield sites within 5 km</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>tractsbuff<span class="sc">$</span>brownfields_N <span class="ot">&lt;-</span> <span class="fu">lengths</span>(<span class="fu">st_intersects</span>(tractsbuff, bfields))</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># distance to nearest brownfield site</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>nearest <span class="ot">&lt;-</span> <span class="fu">st_nearest_feature</span>(tracts, bfields)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>distance <span class="ot">&lt;-</span> <span class="fu">st_distance</span>(tracts, bfields[nearest,], <span class="at">by_element=</span><span class="cn">TRUE</span>)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>joined <span class="ot">&lt;-</span> <span class="fu">cbind</span>(tracts, <span class="fu">st_drop_geometry</span>(bfields)[nearest,]) <span class="sc">%&gt;%</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dist_m =</span> distance) <span class="sc">%&gt;%</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>()</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>proxbfield <span class="ot">&lt;-</span> <span class="fu">left_join</span>(tractsbuff, joined, <span class="at">by =</span> <span class="st">'ID'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">proximity =</span> <span class="fu">ifelse</span>(brownfields_N <span class="sc">&gt;</span> <span class="dv">0</span>, brownfields_N<span class="sc">/</span><span class="dv">5000</span>, <span class="dv">1</span><span class="sc">/</span>dist_m),</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">percentile =</span> <span class="fu">ntile</span>(proximity, <span class="dv">100</span>),</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">thresholdEJ_bfield =</span> <span class="fu">ifelse</span>(percentile <span class="sc">&gt;=</span> <span class="dv">80</span>, <span class="dv">1</span>, <span class="dv">0</span>))</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>dattbunder_cejst_mines_bfields <span class="ot">&lt;-</span> <span class="fu">left_join</span>(dattbunder_cejst_mines, proxbfield, <span class="at">by =</span> <span class="st">'ID'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">thresholdEJ_N =</span> <span class="fu">sum</span>(thresholdEJ_agloss,thresholdEJ_floodr,thresholdEJ_greens,thresholdEJ_pm2<span class="fl">.5</span>,thresholdEJ_trafic,thresholdEJ_wastew,thresholdEJ_hwaste,thresholdEJ_ugtank,thresholdEJ_sfunds,thresholdEJ_redlin,thresholdEJ_phmine,thresholdEJ_bfield, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">overburdened =</span> <span class="fu">ifelse</span>(thresholdEJ_N <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">matches</span>(<span class="st">'^threshold|^ID|^under|^over'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Save this final layer as an RData object for future use.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># save the layer as an RData object</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(dattbunder_cejst_mines_bfields, <span class="at">file =</span> <span class="st">'data/dattbunderover.RData'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Unlink the temporary files to delete them when you are finished.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(tmp1, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(fl, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(tmp1, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(gdbpth, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(fl, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
