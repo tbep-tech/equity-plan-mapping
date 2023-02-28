@@ -191,7 +191,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
-<p>Under the new Equity Strategy, our goal is to ensure at least 40% of the benefits from TBEP activities are directed to underserved communities (see “Mapping underserved communities”). Many of these underserved communities are also disproportionately burdened by pollution, expected impacts from climate change, and lack of green space. Understanding which communities face different burdens can help TBEP prioritize different activities to help mitigate or reduce the burdens facing these communities.</p>
+<p>Under the new Equity Strategy, our goal is to ensure at least 40% of the benefits from TBEP activities are directed to underserved communities (see <a href="overburdened.html">Mapping underserved communities</a>). Many of these underserved communities are also disproportionately burdened by pollution, expected impacts from climate change, and lack of green space. Understanding which communities face different burdens can help TBEP prioritize different activities to help mitigate or reduce the burdens facing these communities.</p>
 <p>TBEP has selected the following 12 factors representing (1) those most relevant to the burdens facing communities in Tampa Bay and (2) environmental injustices that could be reduced by the benefits of TBEP activities:</p>
 <ul>
 <li>Climate Change
@@ -225,7 +225,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>Historic underinvestment (redlining)</li>
 </ul></li>
 </ul>
-<p>Below, we have provided instructions for downloading, cleaning, and analyzing the data that will be used to characterize the burdens facing communities in Tampa Bay. To view instructions for utilizing the final data to map underserved and overburdened communities, see “Mapping underserved and overburdened communities.”</p>
+<p>Below, we have provided instructions for downloading, cleaning, and analyzing the data that will be used to characterize the burdens facing communities in Tampa Bay. To view instructions for utilizing the final data to map underserved and overburdened communities, see <a href="overburdened.html">Mapping underserved and overburdened communities</a>.</p>
+<p>While we encourage other National Estuary Programs to adopt our methodology in their own Equity Strategies, we recognize that different approaches may be necessary in different areas. If you have questions or other feedback regarding the methodology, contact Dr.&nbsp;Blake Simmons at <a href="mailto:bsimmons@tbep.org">bsimmons@tbep.org</a>.</p>
 <p>The method described below is presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step and using analogous GIS tools.</p>
 <p>Load the required R packages (install first as needed).</p>
 <div class="cell">
@@ -477,7 +478,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>dattbunder_cejst_mines_bfields <span class="ot">&lt;-</span> <span class="fu">left_join</span>(dattbunder_cejst_mines, proxbfield, <span class="at">by =</span> <span class="st">'ID'</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">thresholdEJ_N =</span> <span class="fu">sum</span>(thresholdEJ_agloss,thresholdEJ_floodr,thresholdEJ_greens,thresholdEJ_pm2<span class="fl">.5</span>,thresholdEJ_trafic,thresholdEJ_wastew,thresholdEJ_hwaste,thresholdEJ_ugtank,thresholdEJ_sfunds,thresholdEJ_redlin,thresholdEJ_phmine,thresholdEJ_bfield, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">overburdened =</span> <span class="fu">ifelse</span>(thresholdEJ_N <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="st">"Yes"</span>, <span class="st">"No"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">matches</span>(<span class="st">'^threshold|^ID|^under|^over'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Save this final layer as an RData object for future use.</p>
