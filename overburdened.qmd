@@ -7,7 +7,7 @@ execute:
   echo: true
 ---
 
-Under the new Equity Strategy, our goal is to ensure at least 40% of the benefits from TBEP activities are directed to underserved communities (see "Mapping underserved communities"). Many of these underserved communities are also disproportionately burdened by pollution, expected impacts from climate change, and lack of green space. Understanding which communities face different burdens can help TBEP prioritize different activities to help mitigate or reduce the burdens facing these communities.
+Under the new Equity Strategy, our goal is to ensure at least 40% of the benefits from TBEP activities are directed to underserved communities (see [Mapping underserved communities](create.html)). Many of these underserved communities are also disproportionately burdened by pollution, expected impacts from climate change, and lack of green space. Understanding which communities face different burdens can help TBEP prioritize different activities to help mitigate or reduce the burdens facing these communities.
 
 Below, we have provided instructions for replicating our methodology for mapping underserved and overburdened communities in Tampa Bay. To view instructions for downloading the necessary source data, as well as an overview of the environmental justice metrics we consider, see [Getting environmental justice data](cejst.html).
 
