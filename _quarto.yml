@@ -14,7 +14,6 @@ website:
       - href: index.qmd
         text: Getting EJScreen data
       - create.qmd
-      - importing.qmd
       - cejst.qmd
       - overburdened.qmd
 
