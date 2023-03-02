@@ -13,11 +13,13 @@ website:
     left:
       - href: index.qmd
         text: Equity strategy overview
-      - href: ejscreen.qmd
-        text: Getting EJScreen data
-      - underserved.qmd
-      - cejst.qmd
-      - overburdened.qmd
+      - text: Methods
+        menu:
+          - href: ejscreen.qmd
+            text: Getting EJScreen data
+          - underserved.qmd
+          - cejst.qmd
+          - overburdened.qmd
 
 format:
   html:
