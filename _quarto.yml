@@ -13,7 +13,7 @@ website:
     left:
       - href: index.qmd
         text: Getting EJScreen data
-      - create.qmd
+      - underserved.qmd
       - cejst.qmd
       - overburdened.qmd
 
