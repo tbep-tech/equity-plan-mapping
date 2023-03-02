@@ -16,7 +16,7 @@ website:
       - text: Methods
         menu:
           - href: ejscreen.qmd
-            text: Getting EJScreen data
+            text: Getting demographic data
           - underserved.qmd
           - cejst.qmd
           - overburdened.qmd
