@@ -35,10 +35,6 @@ TBEP has selected the following 12 factors representing (1) those most relevant 
 
 Below, we have provided instructions for downloading, cleaning, and analyzing the data that will be used to characterize the burdens facing communities in Tampa Bay. To view instructions for utilizing the final data to map underserved and overburdened communities, see [Mapping underserved and overburdened communities](overburdened.html).
 
-While we encourage other National Estuary Programs to adopt our methodology in their own Equity Strategies, we recognize that different approaches may be necessary in different areas. If you have questions or other feedback regarding the methodology, contact Dr. Blake Simmons at [bsimmons@tbep.org](mailto:bsimmons@tbep.org).
-
-The method described below is presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step and using analogous GIS tools.
-
 
 Load the required R packages (install first as needed).
 
@@ -294,7 +290,7 @@ mapview(allbfld, legend = F, col.regions = 'brown')
 
 You can see the locations of all brownfield sites from the ACRES database across the country. We will use this data in a manner consistent with how CEJST measures a community's proximity to hazardous waste facilities and Superfund sites.
 
-Load the national census tract data from EJScreen if you have it saved from [Getting demographic data](index.html). If not, download the data again using the same steps as before.
+Load the national census tract data from EJScreen if you have it saved from [Getting demographic data](ejscreen.html). If not, download the data again using the same steps as before.
 
 ```{r}
 # url with zip gdb to download
