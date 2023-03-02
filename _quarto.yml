@@ -12,6 +12,8 @@ website:
   navbar:
     left:
       - href: index.qmd
+        text: Equity strategy overview
+      - href: ejscreen.qmd
         text: Getting EJScreen data
       - underserved.qmd
       - cejst.qmd
