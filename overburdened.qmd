@@ -7,13 +7,7 @@ execute:
   echo: true
 ---
 
-Under the new Equity Strategy, our goal is to ensure at least 40% of the benefits from TBEP activities are directed to underserved communities (see [Mapping underserved communities](underserved.html)). Many of these underserved communities are also disproportionately burdened by pollution, expected impacts from climate change, and lack of green space. Understanding which communities face different burdens can help TBEP prioritize different activities to help mitigate or reduce the burdens facing these communities.
-
 Below, we have provided instructions for replicating our methodology for mapping underserved and overburdened communities in Tampa Bay. To view instructions for downloading the necessary source data, as well as an overview of the environmental justice metrics we consider, see [Getting environmental justice data](cejst.html).
-
-While we encourage other National Estuary Programs to adopt our methodology in their own Equity Strategies, we recognize that different approaches may be necessary in different areas. If you have questions or other feedback regarding the methodology, contact Dr. Blake Simmons at [bsimmons@tbep.org](mailto:bsimmons@tbep.org).
-
-The method described below is presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step and using analogous GIS tools.
 
 
 Load the required R packages (install first as needed).
