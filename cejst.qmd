@@ -294,7 +294,7 @@ mapview(allbfld, legend = F, col.regions = 'brown')
 
 You can see the locations of all brownfield sites from the ACRES database across the country. We will use this data in a manner consistent with how CEJST measures a community's proximity to hazardous waste facilities and Superfund sites.
 
-Load the national census tract data from EJScreen if you have it saved from [Getting demographic data](index.html). If not, download the data again using the same steps as before.
+Load the national census tract data from EJScreen if you have it saved from [Getting demographic data](ejscreen.html). If not, download the data again using the same steps as before.
 
 ```{r}
 # url with zip gdb to download
