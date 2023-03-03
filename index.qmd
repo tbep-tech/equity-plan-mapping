@@ -11,16 +11,35 @@ The Tampa Bay Estuary Program (TBEP) is developing a methodology as part of its 
 
 We have created this webpage to increase transparency and reproducibility of the approach guiding our Equity Strategy. We have provided instructions for downloading, cleaning, and analyzing the data that will be used to identify underserved and overburdened communities in Tampa Bay. The methods described on the subsequent pages are presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step.
 
+## What do we consider?
+
+To identify underserved communities in Tampa Bay, we are guided by recommendations provided by the Environmental Protection Agency (EPA), as well as our own local knowledge and experience with the diverse population of more than 3 million people across the Tampa Bay watershed.
+
+We define "underserved" communities as those that fall within the 80th percentile (or higher) nationally for two or more of the following five demographic characteristics:
+
+-   Percent classified as low income
+-   Percent unemployed
+-   Percent linguistically isolated (i.e., limited English speaking)
+-   Percent with less than a high school education
+-   Percent with low life expectancy
+
+Additionally, our Equity Strategy recognizes the importance of tailoring TBEP's environmental programs to address the most significant challenges facing different underserved communities in Tampa Bay. In a dual effort to promote environmental justice within our region, our approach characterizes underserved communities according to the unique burdens they are facing that could realistically be mitigated by TBEP activities. We define "overburdened" communities as those that fall within the 80th percentile (or higher) nationally for one or more of the following 12 environmental justice issues:
+
+-   *Climate change*: projected agricultural loss, projected flood risk
+-   *Nature deprivation*: lack of green space
+-   *Air pollution*: PM2.5, traffic proximity/volume
+-   *Water pollution*: wastewater discharge
+-   *Other pollution*: hazardous waste facilities, underground storage tank release, Superfund sites, brownfield sites, phosphate mines
+-   *Legacy effects*: historic underinvestment/redlining
+
 While we encourage other National Estuary Programs to adopt our methodology in their own Equity Strategies, we recognize that different approaches may be necessary in different areas. Along with our descriptions of the methodology, we also briefly highlight the rationale behind our decisions, which may or may not be relevant or appropriate to other NEPs. If you have questions or other feedback regarding the methodology, contact Dr. Blake Simmons at [bsimmons\@tbep.org](mailto:bsimmons@tbep.org).
 
-## Underserved Communities
+## Underserved communities
 
-![](TB%20Underserved%20Community%20Map1.png){fig-align="left" width="349"} ![](TB%20Underserved%20Community%20Map2.png){fig-align="left" width="303"} ![](TB%20Underserved%20Community%20Map3.png){fig-align="left" width="338"}
+![](TB%20Underserved%20Community%20Map1.png){fig-align="center" width="349"} ![](TB%20Underserved%20Community%20Map2.png){fig-align="center" width="303"} ![](TB%20Underserved%20Community%20Map3.png){fig-align="center" width="338"}
 
-## Underserved and Overburdened Communities
+## Underserved and overburdened communities
 
 ![](TB%20UnderOver%20Community%20Map.png){fig-align="left" width="345"}
 
 Navigate through the Methods pages to create this data and replicate these maps.
-
-![](TBEP%20Logo%202017.jpg){fig-align="center" width="159"}
