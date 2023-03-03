@@ -13,6 +13,14 @@ We have created this webpage to increase transparency and reproducibility of the
 
 While we encourage other National Estuary Programs to adopt our methodology in their own Equity Strategies, we recognize that different approaches may be necessary in different areas. Along with our descriptions of the methodology, we also briefly highlight the rationale behind our decisions, which may or may not be relevant or appropriate to other NEPs. If you have questions or other feedback regarding the methodology, contact Dr. Blake Simmons at [bsimmons\@tbep.org](mailto:bsimmons@tbep.org).
 
+## Underserved Communities
 
+![](TB%20Underserved%20Community%20Map1.png){fig-align="left" width="349"} ![](TB%20Underserved%20Community%20Map2.png){fig-align="left" width="303"} ![](TB%20Underserved%20Community%20Map3.png){fig-align="left" width="338"}
 
-![](TBEP%20Logo%202017.jpg){width="226"}
+## Underserved and Overburdened Communities
+
+![](TB%20UnderOver%20Community%20Map.png){fig-align="left" width="345"}
+
+Navigate through the Methods pages to create this data and replicate these maps.
+
+![](TBEP%20Logo%202017.jpg){fig-align="center" width="159"}
