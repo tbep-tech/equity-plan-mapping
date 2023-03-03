@@ -10,7 +10,7 @@ website:
     right: |
       This website was built with <a href="https://quarto.org/" target="_blank">Quarto</a>
   navbar:
-    logo: tarponlogo.png
+    logo: tarpon.png
     left:
       - href: index.qmd
         text: Equity strategy overview

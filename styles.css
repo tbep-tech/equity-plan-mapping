@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@600;700&display=swap');
 
 /* Frutiger Light approximate */
-@import url("https://fonts.googleapis.com/css?family=Lato:100,300,500,700,900"); 
+@import url("https://fonts.googleapis.com/css?family=Lato:100,300,500,700,900");
 
 /* DIN condensed approximate */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
@@ -69,30 +69,27 @@ h2,h3,h4,h5 {
 
 #editor-map { /* this sets map editor height dynamically if in sidebar */
   height: calc(100vh - 60px) !important;
-} 
+}
 
 #map { /* this sets map height dynamically if in sidebar */
   height: calc(100vh - 60px) !important;
-} 
+}
 
 /* sub sections */
 
 .level1 {
   font-family: 'Roboto';
   font-weight: 300;
-  color: #958984;
 }
 
 .level2 {
   font-family: 'Roboto';
   font-weight: 300;
-  color: #958984;
 }
 
 .level3 {
   font-family: 'Roboto';
   font-weight: 300;
-  color: #958984;
 }
 
 .chart-title {

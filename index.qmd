@@ -36,10 +36,10 @@ While we encourage other National Estuary Programs to adopt our methodology in t
 
 ## Underserved communities
 
-![](TB%20Underserved%20Community%20Map1.png){fig-align="center" width="349"} ![](TB%20Underserved%20Community%20Map2.png){fig-align="center" width="303"} ![](TB%20Underserved%20Community%20Map3.png){fig-align="center" width="338"}
+![](img/TB Underserved Community Map1.png){fig-align="center" width="349"} ![](img/TB Underserved Community Map2.png){fig-align="center" width="303"} ![](img/TB Underserved Community Map3.png){fig-align="center" width="338"}
 
 ## Underserved and overburdened communities
 
-![](TB%20UnderOver%20Community%20Map.png){fig-align="left" width="345"}
+![](img/TB UnderOver Community Map.png){fig-align="left" width="345"}
 
 Navigate through the Methods pages to create this data and replicate these maps.
