@@ -39,21 +39,28 @@
     "href": "index.html",
     "title": "Equity strategy overview",
     "section": "",
-    "text": "The Tampa Bay Estuary Program (TBEP) is developing a methodology as part of its new Equity Strategy to identify historically underserved (i.e., disadvantaged) communities across the Tampa Bay watershed to support the goals of the White House’s Justice40 Initiative (EO 14008) and the Environmental Protection Agency’s Equity Action Plan (EO 13985). The purpose of this initiative is to ensure TBEP delivers equitable and fair access to the benefits from environmental programs for all communities.\nWe have created this webpage to increase transparency and reproducibility of the approach guiding our Equity Strategy. We have provided instructions for downloading, cleaning, and analyzing the data that will be used to identify underserved and overburdened communities in Tampa Bay. The methods described on the subsequent pages are presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step.\nWhile we encourage other National Estuary Programs to adopt our methodology in their own Equity Strategies, we recognize that different approaches may be necessary in different areas. Along with our descriptions of the methodology, we also briefly highlight the rationale behind our decisions, which may or may not be relevant or appropriate to other NEPs. If you have questions or other feedback regarding the methodology, contact Dr. Blake Simmons at bsimmons@tbep.org."
+    "text": "The Tampa Bay Estuary Program (TBEP) is developing a methodology as part of its new Equity Strategy to identify historically underserved (i.e., disadvantaged) communities across the Tampa Bay watershed to support the goals of the White House’s Justice40 Initiative (EO 14008) and the Environmental Protection Agency’s Equity Action Plan (EO 13985). The purpose of this initiative is to ensure TBEP delivers equitable and fair access to the benefits from environmental programs for all communities.\nWe have created this webpage to increase transparency and reproducibility of the approach guiding our Equity Strategy. We have provided instructions for downloading, cleaning, and analyzing the data that will be used to identify underserved and overburdened communities in Tampa Bay. The methods described on the subsequent pages are presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step."
+  },
+  {
+    "objectID": "index.html#what-do-we-consider",
+    "href": "index.html#what-do-we-consider",
+    "title": "Equity strategy overview",
+    "section": "What do we consider?",
+    "text": "What do we consider?\nTo identify underserved communities in Tampa Bay, we are guided by recommendations provided by the Environmental Protection Agency (EPA), as well as our own local knowledge and experience with the diverse population of more than 3 million people across the Tampa Bay watershed.\nWe define “underserved” communities as those that fall within the 80th percentile (or higher) nationally for two or more of the following five demographic characteristics:\n\nPercent classified as low income\nPercent unemployed\nPercent linguistically isolated (i.e., limited English speaking)\nPercent with less than a high school education\nPercent with low life expectancy\n\nAdditionally, our Equity Strategy recognizes the importance of tailoring TBEP’s environmental programs to address the most significant challenges facing different underserved communities in Tampa Bay. In a dual effort to promote environmental justice within our region, our approach characterizes underserved communities according to the unique burdens they are facing that could realistically be mitigated by TBEP activities. We define “overburdened” communities as those that fall within the 80th percentile (or higher) nationally for one or more of the following 12 environmental justice issues:\n\nClimate change: projected agricultural loss, projected flood risk\nNature deprivation: lack of green space\nAir pollution: PM2.5, traffic proximity/volume\nWater pollution: wastewater discharge\nOther pollution: hazardous waste facilities, underground storage tank release, Superfund sites, brownfield sites, phosphate mines\nLegacy effects: historic underinvestment/redlining\n\nWhile we encourage other National Estuary Programs to adopt our methodology in their own Equity Strategies, we recognize that different approaches may be necessary in different areas. Along with our descriptions of the methodology, we also briefly highlight the rationale behind our decisions, which may or may not be relevant or appropriate to other NEPs. If you have questions or other feedback regarding the methodology, contact Dr. Blake Simmons at bsimmons@tbep.org."
   },
   {
     "objectID": "index.html#underserved-communities",
     "href": "index.html#underserved-communities",
     "title": "Equity strategy overview",
-    "section": "Underserved Communities",
-    "text": "Underserved Communities"
+    "section": "Underserved communities",
+    "text": "Underserved communities"
   },
   {
     "objectID": "index.html#underserved-and-overburdened-communities",
     "href": "index.html#underserved-and-overburdened-communities",
     "title": "Equity strategy overview",
-    "section": "Underserved and Overburdened Communities",
-    "text": "Underserved and Overburdened Communities\n\n\n\n\n\nNavigate through the Methods pages to create this data and replicate these maps."
+    "section": "Underserved and overburdened communities",
+    "text": "Underserved and overburdened communities\n\n\n\n\n\nNavigate through the Methods pages to create this data and replicate these maps."
   },
   {
     "objectID": "underserved.html",
