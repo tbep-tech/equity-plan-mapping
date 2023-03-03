@@ -42,6 +42,20 @@
     "text": "The Tampa Bay Estuary Program (TBEP) is developing a methodology as part of its new Equity Strategy to identify historically underserved (i.e., disadvantaged) communities across the Tampa Bay watershed to support the goals of the White House’s Justice40 Initiative (EO 14008) and the Environmental Protection Agency’s Equity Action Plan (EO 13985). The purpose of this initiative is to ensure TBEP delivers equitable and fair access to the benefits from environmental programs for all communities.\nWe have created this webpage to increase transparency and reproducibility of the approach guiding our Equity Strategy. We have provided instructions for downloading, cleaning, and analyzing the data that will be used to identify underserved and overburdened communities in Tampa Bay. The methods described on the subsequent pages are presented in R coding language, but users who prefer working with GIS software (e.g., ArcGIS or QGIS) should also be able to reproduce the maps by following along in the descriptions of each step.\nWhile we encourage other National Estuary Programs to adopt our methodology in their own Equity Strategies, we recognize that different approaches may be necessary in different areas. Along with our descriptions of the methodology, we also briefly highlight the rationale behind our decisions, which may or may not be relevant or appropriate to other NEPs. If you have questions or other feedback regarding the methodology, contact Dr. Blake Simmons at bsimmons@tbep.org."
   },
   {
+    "objectID": "index.html#underserved-communities",
+    "href": "index.html#underserved-communities",
+    "title": "Equity strategy overview",
+    "section": "Underserved Communities",
+    "text": "Underserved Communities"
+  },
+  {
+    "objectID": "index.html#underserved-and-overburdened-communities",
+    "href": "index.html#underserved-and-overburdened-communities",
+    "title": "Equity strategy overview",
+    "section": "Underserved and Overburdened Communities",
+    "text": "Underserved and Overburdened Communities\n\n\n\n\n\nNavigate through the Methods pages to create this data and replicate these maps."
+  },
+  {
     "objectID": "underserved.html",
     "href": "underserved.html",
     "title": "Mapping underserved communities",
