@@ -21,6 +21,7 @@ website:
           - underserved.qmd
           - cejst.qmd
           - overburdened.qmd
+          - example.qmd
 
 format:
   html:
