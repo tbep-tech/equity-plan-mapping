@@ -1,0 +1,383 @@
+---
+title: "Example application"
+format: html
+editor: source
+
+execute:
+  echo: true
+---
+
+The purpose of mapping underserved and overburdened communities is to monitor and report on TBEP's contribution to increasing equitable and fair access to environmental benefits in Tampa Bay. In line with the goals of the Justice40 Initiative, TBEP's Equity Strategy has a goal to ensure that at least 40% of the benefits from our activities are distributed to underserved and overburdened communities.
+
+Recognizably, there are a myriad of benefits that flow from the diverse conservation, restoration, and outreach activities that TBEP produces, spanning the many provisioning, supporting, regulating, and cultural services provided by nature. While we support ongoing efforts to develop additional methodologies to quantify these unique services provided by different activities, TBEP considers the following factors when defining and measuring the flow of benefits from our activities for each fiscal year:
+
+-   The number of projects occurring within one mile of underserved communities
+-   The amount of funding/investment dollars in projects occurring within one mile of underserved communities
+-   The area covered by projects occurring within one mile of underserved communities (where applicable)
+
+Consideration of these metrics relative to all projects occurring more than one mile of underserved communities will inform TBEP's progress toward the 40% target. Notably, these metrics represent indicators of distributive equity only. Additional metrics will be developed to monitor and report progress on targets for procedural and recognitional equity.
+
+Below, we have provided an example of how we can utilize the maps of underserved and overburdened communities to estimate progress toward achieving the 40% distributive equity target. This example is for illustrative purposes only and represents a subset of activities that will be monitored and reported by TBEP.
+
+Load the required R packages (install first as needed).
+
+```{r}
+#| eval: true
+library(sf)
+library(mapview)
+library(dplyr)
+library(RColorBrewer)
+library(ggplot2)
+library(gridExtra)
+library(reshape2)
+library(leafsync)
+```
+
+Load the map of underserved and overburdened (under/over) communities in Tampa Bay made in the previous pages.
+
+```{r}
+load(file = 'data/dattbequity.RData')
+# this file is saved as dattbequity but loads as dattbunderover (to be corrected)
+
+# project to EPSG 6443 (Florida West)
+dattbequity <- st_transform(dattbunderover, crs = 6443)
+```
+
+## Baseline equity stats for restoration projects in 2020 and 2021
+
+The [Tampa Bay Water Atlas](https://www.tampabay.wateratlas.usf.edu/), hosted by USF Water Institute, contains point locations of habitat restoration projects in the Tampa Bay watershed since the 1970s. As of March 2023, the most recent projects mapped in the dataset are from 2021: https://www.tampabay.wateratlas.usf.edu/restoration/.
+
+In addition to location, the dataset includes other project attributes (as available), such as year, project name, habitat type, type of activity, lead and other partners, primary funding source, approximate area (acres), and total project cost (\$). We will use this data to establish a baseline of benefits to under/over communities from TBEP programs.
+
+*NOTE: Information and completeness vary by project, with more recent projects often containing more detailed and reliable information. Data from 2020 and 2021 are the most reliable and complete. However, some errors may exist, as the dataset continues to be updated and refined.*
+
+Download the data from the Tampa Bay Water Atlas. The file is downloaded to a temporary directory.
+
+```{r}
+# url with zip gdb to download
+urlin <- 'https://maps.wateratlas.usf.edu/downloads/TampaBay_Restoration.zip'
+
+# download file
+tmp1 <- tempfile(fileext = ".zip")
+download.file(url = urlin, destfile = tmp1)
+```
+
+Unzip the geodatabase that was downloaded to a second temporary directory.
+
+```{r}
+# unzip file
+tmp2 <- tempdir()
+utils::unzip(tmp1, exdir = tmp2)
+```
+
+Read the point layer from the geodatabase and transform to the relevant projected coordinate system (EPSG 6443 for Tampa Bay).
+
+```{r}
+# get the layers from the gdb
+gdbpth <- list.files(tmp2, pattern = '\\.gdb$', full.names = T)
+gdbpth <- gsub('\\\\', '/', gdbpth)
+lyr <- st_layers(gdbpth)$name
+
+# load the layer with the most recent data (2021)
+rest <- st_read(dsn = gdbpth, 'TBRestoration_2021')
+rest <- st_transform(rest, crs = 6443)
+```
+
+Filter the dataset to keep only the restoration projects that meet the following criteria for inclusion in our project reporting:
+
+-   Has valid coordinates, *AND*
+-   Project year is between 2020-2021, *AND*
+-   Lead partner is TBEP, *OR*
+-   Primary funding source is TBEP, TBERF, Bay Mini-Grants, or RESTORE Act Grant
+
+```{r}
+tbrest <- rest %>%
+  filter(Latitude > 0,
+         Project_Year >= 2020,
+         grepl('TBEP|Tampa Bay Estuary Program', Lead_Partner) |
+         grepl('TBEP|Tampa Bay Estuary Program|TBERF|Tampa Bay Environmental Restoration Fund|Bay Mini-Grant|RESTORE', Primary_Funding_Source))
+```
+
+Create a 1 mile buffer around the restoration sites.
+
+```{r}
+# 1 mile buffer (5280 ft)
+tbrestbuff <- st_buffer(tbrest, dist = 5280)
+
+mapviewOptions("basemaps.color.shuffle" = FALSE)
+mapview(tbrestbuff, zcol = "Activity", col.regions = list("yellow","blue"), layer.name = "Activity", label = "Project_Name")
+```
+
+Intersect the buffered sites with the underserved and overburdened layer.
+
+```{r}
+tbrestbuff_int <- st_intersection(tbrestbuff, dattbequity)
+```
+
+Create a table characterizing the projects that are within or over 1 mile from under/over communities for each year and merge with the restoration layer.
+
+```{r}
+summaries <- tbrestbuff_int %>%
+  group_by(Project_Year, Project_Name, overburdened) %>%
+  summarise(CCagloss = sum(thresholdEJ_agloss, na.rm = TRUE),
+            CCfloodr = sum(thresholdEJ_floodr, na.rm = TRUE),
+            NPgreens = sum(thresholdEJ_greens, na.rm = TRUE),
+            APpm2.5 = sum(thresholdEJ_pm2.5, na.rm = TRUE),
+            APtrafic = sum(thresholdEJ_trafic, na.rm = TRUE),
+            WPwastew = sum(thresholdEJ_wastew, na.rm = TRUE),
+            OPhwaste = sum(thresholdEJ_hwaste, na.rm = TRUE),
+            OPugtank = sum(thresholdEJ_ugtank, na.rm = TRUE),
+            OPsfunds = sum(thresholdEJ_sfunds, na.rm = TRUE),
+            OPbfield = sum(thresholdEJ_bfield, na.rm = TRUE),
+            OPphmine = sum(thresholdEJ_phmine, na.rm = TRUE),
+            LEredlin = sum(thresholdEJ_redlin, na.rm = TRUE)) %>%
+  mutate(underserved = "Yes") %>%
+  as.data.frame()
+
+tbrest <- left_join(tbrest, summaries, by = c("Project_Year", "Project_Name")) %>%
+  mutate(underserved = coalesce(underserved, "No"),
+         overburdened = coalesce(overburdened, "No"))
+```
+
+Some cleaning of the data is required for this version of the dataset to remove non-numeric characters from the cost field.
+
+```{r}
+# cleaning required for project cost layer (remove text, $, commas, etc.)
+tbrest <- tbrest %>%
+  mutate(cost = sub(" \\(.*", "", Total_Project_Cost)) %>%
+  mutate(cost = gsub("[^0-9.-]", "", cost))
+
+tbrest$cost <- as.numeric(tbrest$cost)
+```
+
+Create annual summary stats for our three measures of distributive equity.
+
+```{r}
+annual_stats1 <- as.data.frame(tbrest) %>%
+  group_by(Project_Year, underserved) %>%
+  summarise(Projects_N = n())
+
+annual_stats2 <- as.data.frame(tbrest) %>%
+  group_by(Project_Year, underserved) %>%
+  summarise(Projects_cost = sum(cost, na.rm = TRUE))
+
+annual_stats3 <- as.data.frame(tbrest) %>%
+  group_by(Project_Year, underserved) %>%
+  summarise(Projects_area = sum(Acres, na.rm = TRUE))
+
+annual_stats <- left_join(annual_stats1, annual_stats2, c("Project_Year", "underserved")) %>%
+  left_join(annual_stats3, c("Project_Year", "underserved")) %>%
+  mutate(Pct_N = Projects_N/sum(Projects_N)*100) %>%
+  mutate(Pct_cost = Projects_cost/sum(Projects_cost)*100) %>%
+  mutate(Pct_area = Projects_area/sum(Projects_area)*100)
+
+# view table
+annual_stats
+```
+
+The table shows that in 2020, 50% of restoration projects were within 1 mile of underserved communities. Additionally, 52% of funding went to projects near these communities, and 30% of the total area covered by all projects was for projects near these communities.
+
+This share of benefits decreased in 2021: 30% of projects, 34% of funding, and just 2% of total area was for projects within 1 mile of underserved communities. *Note: accuracy of area estimates vary between projects due to reporting errors*
+
+Calculating over both years, we get the following: Projects - 38%, Funding - 38%, Area - 7%
+
+```{r}
+total_stats1 <- annual_stats %>%
+  group_by(underserved) %>%
+  summarise(Projects_N = sum(Projects_N, na.rm = TRUE))
+
+total_stats2 <- annual_stats %>%
+  group_by(underserved) %>%
+  summarise(Projects_cost = sum(Projects_cost, na.rm = TRUE))
+
+total_stats3 <- annual_stats %>%
+  group_by(underserved) %>%
+  summarise(Projects_area = sum(Projects_area, na.rm = TRUE))
+
+total_stats <- left_join(total_stats1, total_stats2, by = "underserved") %>%
+  left_join(total_stats3, by = "underserved") %>%
+  mutate(Pct_N = Projects_N/sum(Projects_N)*100) %>%
+  mutate(Pct_cost = Projects_cost/sum(Projects_cost)*100) %>%
+  mutate(Pct_area = Projects_area/sum(Projects_area)*100)
+
+# view table
+total_stats
+```
+
+We can visualize these stats with ggplot.
+
+```{r}
+plot1 <- ggplot(annual_stats, aes(x=as.factor(Project_Year), y=Projects_N)) +
+  geom_bar(aes(fill = underserved), stat="identity") +
+  xlab("Year") +
+  ylab("Number of Restoration Projects") +
+  theme(legend.position="top") +
+  scale_fill_discrete(name="",labels=c('Over 1 mile', 'Within 1 mile')) +
+  ggtitle("Proximity to Underserved Communities")
+
+plot2 <- ggplot(annual_stats, aes(x=as.factor(Project_Year), y=Projects_area)) +
+  geom_bar(aes(fill = underserved), stat="identity")+
+  xlab("Year") +
+  ylab("Reported Area of Projects (acres)") +
+  theme(legend.position="top") +
+  scale_fill_discrete(name="",labels=c('Over 1 mile', 'Within 1 mile')) +
+  ggtitle("Proximity to Underserved Communities")
+
+plot3 <- ggplot(annual_stats, aes(x=as.factor(Project_Year), y=Projects_cost/1000)) +
+  geom_bar(aes(fill = underserved), stat="identity") +
+  xlab("Year") +
+  ylab("Total Investment in Projects ($ thousand)") +
+  theme(legend.position="top") +
+  scale_fill_discrete(name="",labels=c('Over 1 mile', 'Within 1 mile')) +
+  ggtitle("Proximity to Underserved Communities") +
+  scale_y_continuous(labels = function(x) format(x, scientific = FALSE))
+
+grid.arrange(plot1, plot2, plot3, ncol = 3, nrow = 1)
+```
+
+We can gather additional information from this dataset to complement these overall stats. For example, we can look at the different types of projects benefiting underserved communities and the burdens facing the communities that have benefited from these projects.
+
+First, let's look at restoration activities compared to enhancement activities. Running the code below, we can see that 71% of projects within 1 mile of underserved communities in 2020 were enhancement activities, compared to 50% in 2021.
+
+```{r}
+annual_stats4 <- as.data.frame(tbrest) %>%
+  group_by(Project_Year, underserved, Activity) %>%
+  summarise(Projects_N = n()) %>%
+  mutate(Pct_N = Projects_N/sum(Projects_N)*100)
+
+annual_stats4
+```
+
+Plotting these stats gives a nice visual comparison of what projects tend to occur near underserved communities in the past.
+
+```{r}
+plot4 <- ggplot(annual_stats4, aes(x=as.factor(Project_Year), y=Projects_N)) +
+  geom_bar(aes(fill = underserved), stat="identity") +
+  facet_grid(~ Activity) +
+  xlab("Year") +
+  ylab("Number of Projects") +
+  theme(legend.position="top") +
+  scale_fill_discrete(name="",labels=c('Over 1 mile', 'Within 1 mile')) +
+  ggtitle("Proximity to Underserved Communities") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plot4
+```
+
+From the graph above, we can see that benefits from restoration activities tend to be more equitably distributed to underserved communities than enhancement activities, even though enhancement activities are more common near these communities.
+
+Next, let's look at the burdens facing the underserved communities that have benefited from past projects.
+
+```{r}
+annual_burden_stats <- as.data.frame(tbrest) %>%
+  filter(overburdened == "Yes") %>%
+  group_by(Project_Year) %>%
+  summarise(AgLoss = sum(ifelse(CCagloss > 0, 1, 0)),
+            FloodRisk = sum(ifelse(CCfloodr > 0, 1, 0)),
+            NatureDeprived = sum(ifelse(NPgreens > 0, 1, 0)),
+            PM2.5 = sum(ifelse(APpm2.5 > 0, 1, 0)),
+            Traffic = sum(ifelse(APtrafic > 0, 1, 0)),
+            Wastewater = sum(ifelse(WPwastew > 0, 1, 0)),
+            HazardousWaste = sum(ifelse(OPhwaste > 0, 1, 0)),
+            StorageTanks = sum(ifelse(OPugtank > 0, 1, 0)),
+            Superfunds = sum(ifelse(OPsfunds > 0, 1, 0)),
+            Brownfields = sum(ifelse(OPbfield > 0, 1, 0)),
+            Mines = sum(ifelse(OPphmine > 0, 1, 0)),
+            Redlining = sum(ifelse(LEredlin > 0, 1, 0))) %>%
+  mutate(Project_Year = as.factor(Project_Year))
+
+# convert from wide to long format
+annual_burden_stats <- annual_burden_stats %>%
+  melt(id.vars="Project_Year", variable.name="Burden", value.name="Projects_N")
+
+plot5 <- ggplot(annual_burden_stats, aes(x=Project_Year, y=Projects_N)) +
+  geom_bar(aes(fill = Burden), color = "black", position="dodge", stat="identity") +
+  xlab("Year") +
+  ylab("Number of Projects") +
+  ggtitle("Projects Near Underserved Communities Facing Different Burdens") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plot5
+```
+
+
+We can see that past projects within 1 mile of underserved communities tend to benefit communities in close proximity to leaking underground storage tanks and brownfield sites, as well as those with facing high risk of flooding under cliamate change. No projects during this period are located near underserved communities facing risks of agriculture loss, high PM2.5, or pollution from phosphate mines.
+
+More investigations can be made using the various other attributes of the Tampa Bay Water Atlas.
+
+
+### Mapping benefits to communities
+
+We can modify the steps above to identify the communities that are benefiting from TBEP activities. In this section, we will identify these communities and characterize the benefits flowing to them.
+
+Intersect the underserved and overburdened layer with the buffered sites. 
+
+```{r}
+dattbequity_int <- st_intersection(dattbequity, tbrestbuff)
+```
+
+Create a table characterizing the tracts that are within or over 1 mile of restoration activities for each year and merge with the polygon layer.
+
+```{r}
+summaries2 <- as.data.frame(dattbequity_int) %>%
+  group_by(ID, Project_Year, Restoration_Technique, Activity) %>%
+  summarise(Projects_N = n())
+
+dattbequity_projects <- full_join(dattbequity, summaries2, by = 'ID') %>%
+  mutate(Restoration_Technique = coalesce(Restoration_Technique, "None"),
+         Activity = coalesce(Activity, "None"),
+         Projects_N = coalesce(Projects_N, 0)) %>%
+  group_by(ID, EJissues1, EJissues1.1) %>%
+  summarise(Projects = sum(Projects_N),
+            Restoration = sum(Activity == "Restoration"),
+            Enhancement = sum(Activity == "Enhancement"),
+            ShorelineEnhance = sum(Restoration_Technique == "Shoreline Stabilization/Enhancement"),
+            VegetationBuffer = sum(Restoration_Technique == "Vegetation Buffer"),
+            Planting = sum(Restoration_Technique == "Planting"),
+            Reestablishment = sum(Restoration_Technique == "Reestablishment"),
+            OysterGardening = sum(Restoration_Technique == "Oyster Gardening"),
+            DebrisRemoval = sum(Restoration_Technique == "Debris Removal"),
+            InvasivesControl = sum(Restoration_Technique == "Invasives Control/Removal - Vegetation")) %>%
+  mutate(Activities = ifelse(Restoration > 0 & Enhancement > 0, "Restoration & Enhancement",
+                             ifelse(Restoration > 0 & Enhancement == 0, "Restoration",
+                                    ifelse(Restoration == 0 & Enhancement > 0, "Enhancement", "None"))))
+```
+
+Map the number of projects occurring within 1 mile of each underserved tract during 2020-2021. You can see that past projects have provided more benefits to communities of south St. Petersburg and northern Tampa, while communities in Bradenton and the eastern inland areas of the watershed have none. Such a map can help us identify where we can direct future efforts to more equitably distribute the benefits of TBEP activities across the watershed.
+
+```{r}
+mapview(dattbequity_projects, zcol = "Projects", col.regions = brewer.pal(4, "YlOrRd"), layer.name = "No. of Projects within 1 Mile")
+```
+
+You can make additional maps to characterize communities based on activities. For example, we can map the type of projects that benefited underserved communities.
+
+```{r}
+mapview(dattbequity_projects, zcol = "Activities", col.regions = list("yellow","gray","blue","green"), layer.name = "Activity")
+```
+
+
+We can also look at different restoration techniques used for those projects.
+
+```{r}
+map_planting <- dattbequity_projects %>%
+  filter(Planting > 0) %>%
+  mapview(zcol = "Planting", col.regions = "green", layer.name = "Planting")
+
+map_oyster <- dattbequity_projects %>%
+  filter(OysterGardening  > 0) %>%
+  mapview(zcol = "OysterGardening", col.regions = "black", layer.name = "Oyster Gardening")
+
+map_shore <- dattbequity_projects %>%
+  filter(ShorelineEnhance > 0) %>%
+  mapview(zcol = "ShorelineEnhance", col.regions = "brown", layer.name = "Shoreline Enhancement")
+
+map_invasives <- dattbequity_projects %>%
+  filter(InvasivesControl  > 0) %>%
+  mapview(zcol = "InvasivesControl", col.regions = "blue", layer.name = "Invasives Control")
+
+sync(map_planting, map_oyster, map_shore, map_invasives)
+```
+
+The map above shows the underserved communities benefiting from planting (green), oyster gardening (black), shoreline enhancement (brown), and invasives control/removal (blue) activities. 
+
+
