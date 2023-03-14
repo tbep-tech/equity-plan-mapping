@@ -9,7 +9,6 @@ execute:
 
 Below, we have provided instructions for replicating our methodology for mapping underserved communities in Tampa Bay. To view instructions for downloading the necessary source data from EJScreen, see [Getting demographic data](ejscreen.html).
 
-
 Load the required R packages (install first as needed).
 
 ```{r}
@@ -21,17 +20,33 @@ library(dplyr)
 library(RColorBrewer)
 ```
 
-Load and view the data.
+Load the census block group and tract data.
 
 ```{r}
 #| out-width: "100%"
-load(file = 'data/dattb.RData')
-mapview(dattb)
+load(file = 'data/tb_blockgroup.RData')
+load(file = 'data/tb_tract.RData')
+
+mapview(tb_blockgroup)
 ```
 
-You can see that some census tracts are only representative of the bay. We can clean up this data by retaining only the tracts in which the total population recorded in the latest American Community Survey ("ACSTOTPOP") was above zero. This will remove tracts in which no people reside (e.g., large waterbodies, parks, or other natural areas).
+You can see that some blocks/tracts are only representative of the bay. We can clean up this data by retaining only the tracts in which the total population recorded in the latest American Community Survey ("ACSTOTPOP") was above zero. This will remove tracts in which no people reside (e.g., large waterbodies, parks, or other natural areas).
 
-In line with EPA recommendations, we will use the following five demographic variables to identify underserved communities:
+```{r}
+tb_blockgroup <- tb_blockgroup %>%
+  filter(ACSTOTPOP > 0)
+
+tb_tract <- tb_tract %>%
+  filter(ACSTOTPOP > 0)
+
+mapview(tb_blockgroup)
+```
+
+# Projects funded by BIL
+
+The 2021 Bipartisan Infrastructure Law (BIL), implemented through the EPA and NEPs, provides approximately \$909,800 in annual funding to each NEP over the 2022-2026 period. In this section, we outline our approach for ensuring that projects using BIL funding will sustain and increase investments in underserved communities, and the benefits that flow to them.
+
+The EPA uses the EJScreen Supplemental Demographic Index to identify underserved communities at the block group level. The Index is based on an average of the following five demographic variables:
 
 -   Percent classified as low income
 
@@ -43,13 +58,39 @@ In line with EPA recommendations, we will use the following five demographic var
 
 -   Percent with low life expectancy
 
-The EPA recommends flagging communities that fall within the 80th percentile (or higher) nationally as potentially disadvantaged. However, meeting this threshold in one variable alone is not necessarily an appropriate measure of disadvantage (e.g., a community of predominantly wealthy retirees would meet the unemployment threshold). For TBEP's Equity Strategy, we define an underserved community as one that meets at least two of these thresholds, which we believe reduces the number of errors in identification while recognizing that a community does not need to meet the threshold of every indicator to face significant challenges.
-
-Run the code below to (1) remove unpopulated census tracts, (2) count the number of demographic thresholds met in each tract, and (3) identify which tracts will be classified as "underserved" communities.
+If the Supplemental Demographic Index score in a block group exceeds the 80th percentile nationally, it will be identified by the EPA as a disadvantaged community for the purposes of tracking Justice40 investments and benefits. View the percentiles by census block group using the code below.
 
 ```{r}
-dattbindex <- dattb %>%
-  filter(ACSTOTPOP > 0) %>%
+mapview(tb_blockgroup, zcol = "P_VULEOPCT", at = seq(0, 100, 20), layer.name = "Supp. Demographic Index (percentile)")
+```
+
+Extract the block groups meeting the EPA's threshold. These will be the communities used to guide BIL funded projects to meet Justice40 goals.
+
+```{r}
+underserved_BIL <- tb_blockgroup %>%
+  filter(P_VULEOPCT >= 80) %>%
+  mutate(funding = "BIL")
+
+mapview(underserved_BIL, label = "P_VULEOPCT")
+```
+
+You can save this final data as an RData object for future use.
+
+```{r}
+# save the layer as an RData object
+save(underserved_BIL, file = 'data/underserved_BIL.RData')
+```
+
+# Projects from other funding sources
+
+The EPA recommends flagging communities that fall within the 80th percentile (or higher) nationally across five demographic variables as potentially disadvantaged. However, this represents a relatively exclusive indicator of disadvantage. Some communities may face significant challenges but only meet the national threshold in two out of these five variables, ultimately falling below the EPA's Supplemental Demographic Index threshold.
+
+For all other projects not funded through BIL, TBEP considers a more inclusive definition of underserved communities, in which a census tract must meet or exceed the 80th percentile in at least two of the five demographic screening variables. This approach necessarily includes all communities that meet the EPA's criteria for BIL funded projects, while reducing the number of errors in identification from meeting just one threshold (e.g., a community of predominantly wealthy retirees/unemployed residents). Aggregation to the census tract level also permits linking this layer with other socioeconomic and environmental data provided by the federal government at this same community delineation.
+
+Run the code below to (1) count the number of demographic thresholds met in each tract, and (2) identify which tracts will be classified as "underserved" communities more broadly.
+
+```{r}
+underserved_other <- tb_tract %>%
   mutate(threshold_income = ifelse(P_LWINCPCT >= 80, 1, 0),
          threshold_unempl = ifelse(P_UNEMPPCT >= 80, 1, 0),
          threshold_lingui = ifelse(P_LNGISPCT >= 80, 1, 0),
@@ -58,13 +99,8 @@ dattbindex <- dattb %>%
   rowwise() %>%
   select(matches('^threshold|^ID')) %>% 
   mutate(threshold_N = sum(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, na.rm = TRUE)) %>%
-  mutate(underserved = ifelse(threshold_N > 1, "Yes", "No"))
-```
-
-View the first five rows to see how the calculations have played out.
-
-```{r}
-head(dattbindex)
+  mutate(underserved = ifelse(threshold_N > 1, "Yes", "No"),
+         funding = ifelse(threshold_N > 1, "Other", NA))
 ```
 
 ## View by Census Tract
@@ -72,21 +108,34 @@ head(dattbindex)
 View a map showing the number of thresholds met per census tract (you may adapt to a different color scale of your choice).
 
 ```{r}
-mapview(dattbindex, zcol = "threshold_N", col.regions = brewer.pal(6, "Reds"), layer.name = "No. of Thresholds Met")
+mapview(underserved_other, zcol = "threshold_N", col.regions = brewer.pal(6, "Reds"), layer.name = "No. of Thresholds Met")
 ```
 
-View the tracts that meet our definition of underserved communities. The areas in red are those that rank in the 80th percentile (or greater) nationally in 2 or more of the demographic screening variables. They will serve as priority areas for increasing the equitable distribution of benefits from TBEP's environmental programs.
+View the tracts that meet our more inclusive definition of underserved communities. The areas in red are those that rank in the 80th percentile (or greater) nationally in 2 or more of the demographic screening variables. They will serve as priority areas for increasing the equitable distribution of benefits from TBEP's non-BIL funded environmental programs.
 
 ```{r}
-mapview(dattbindex, zcol = "underserved", col.regions = list("gray","red"), layer.name = "Underserved Communities")
+mapview(underserved_other, zcol = "underserved", col.regions = list("gray","red"), layer.name = "Underserved Communities (non-BIL)")
 ```
 
 You can save this final data as an RData object for future use.
 
 ```{r}
+underserved_other <- underserved_other %>%
+  filter(!is.na(funding))
+
 # save the layer as an RData object
-save(dattbindex, file = 'data/dattbindex.RData')
+save(underserved_other, file = 'data/underserved_other.RData')
 ```
+
+
+### Comparison of underserved community definitions
+
+We can visualize the underserved census block groups meeting the EPA requirements for BIL funded projects against the backdrop of our more inclusive definition of underserved census tracts suitable for projects funded through other sources.
+
+```{r}
+mapview(underserved_other, zcol= "funding", col.region = "red", layer.name = "Project Funding") + mapview(underserved_BIL, zcol = "funding", col.region = "blue", layer.name = "Project Funding")
+```
+
 
 ## View by Drainage Basin
 
@@ -110,15 +159,15 @@ load(file = 'data/tbshed.RData')
 
 sf_use_s2(FALSE)
 
-dattbdbasins <- dbasins %>% 
+tb_dbasins <- dbasins %>% 
   st_intersection(tbshed)
 ```
 
 Since we will be doing area calculations, we need to set a projected coordinate system for the drainage basin and census tract layers. The most appropriate CRS for Tampa Bay is EPSG 6443.
 
 ```{r}
-dattbdbasins <- st_transform(dattbdbasins, crs = 6443)
-dattbindex <- st_transform(dattbindex, crs = 6443)
+tb_dbasins <- st_transform(tb_dbasins, crs = 6443)
+underserved_other <- st_transform(underserved_other, crs = 6443)
 ```
 
 Keep only the land area within each drainage basin and census tract. We can exclude water areas by intersecting the layers with Florida's shoreline (available [here](https://geodata.myfwc.com/datasets/myfwc::florida-shoreline-1-to-12000-scale/about) from the Florida Fish and Wildlife Conservation Commission).
@@ -128,28 +177,24 @@ flshore <- st_read('https://atoll.floridamarine.org/arcgis/rest/services/FWC_GIS
 
 flshore <- st_transform(flshore, crs = 6443)
 
-dattbdbasins <- dattbdbasins %>% 
+tb_dbasins <- tb_dbasins %>% 
   st_intersection(flshore)
 
-dattbindex <- dattbindex %>% 
+underserved_other <- underserved_other %>% 
   st_intersection(flshore)
 ```
 
 Calculate (1) the total land area of each drainage basin in the watershed and (2) the total area of underserved tracts within each drainage basin. Units are in feet for this projected coordinate system.
 
 ```{r}
-# get only underserved tracts
-dattbunder <- dattbindex %>%
-  filter(underserved == "Yes")
-
 # total basin area
-basinareas <- dattbdbasins %>%
-  mutate(area_ft = st_area(dattbdbasins)) %>%
+basinareas <- tb_dbasins %>%
+  mutate(area_ft = st_area(tb_dbasins)) %>%
   group_by(WBID) %>%
   summarise(db_area_ft = sum(area_ft))
 
 # underserved area within basins
-basin_int <- st_intersection(basinareas, dattbunder)
+basin_int <- st_intersection(basinareas, underserved_other)
 
 basin_underareas <- basin_int %>%
   mutate(area_int_ft = st_area(basin_int)) %>%
@@ -163,13 +208,13 @@ areasjoined <- left_join(basinareas, basin_underareas, by = 'WBID') %>%
   select(matches('^WBID|^db|^under')) %>%
   as.data.frame()
 
-dattbdbasins_under <- left_join(dattbdbasins, areasjoined, by = 'WBID')
+tb_dbasins_under <- left_join(tb_dbasins, areasjoined, by = 'WBID')
 ```
 
 Calculate the proportion of each drainage basin containing underserved communities.
 
 ```{r}
-dattbdbasins_under <- dattbdbasins_under %>%
+tb_dbasins_under <- tb_dbasins_under %>%
   mutate(under_area_ft = ifelse(is.na(under_area_ft), 0, under_area_ft)) %>%
   mutate(pct_under = under_area_ft/db_area_ft * 100) %>%
   mutate(pct_under = as.numeric(pct_under))
@@ -180,6 +225,5 @@ Create a map showing priority drainage basins based on the presence of underserv
 ```{r}
 mapviewOptions("basemaps.color.shuffle" = FALSE)
 
-mapview(dattbdbasins_under, zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), at = seq(0, 100, 20), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
+mapview(tb_dbasins_under, zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), at = seq(0, 100, 20), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
 ```
-
