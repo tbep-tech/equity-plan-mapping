@@ -1,6 +1,5 @@
 ---
 title: Mapping underserved communities
-format: html
 editor: source
 
 execute:
@@ -18,8 +17,6 @@ library(sf)
 library(mapview)
 library(dplyr)
 library(RColorBrewer)
-
-mapviewOptions(fgb = TRUE)
 ```
 
 Load the census block group and tract data.
@@ -29,7 +26,7 @@ Load the census block group and tract data.
 load(file = 'data/tb_blockgroup.RData')
 load(file = 'data/tb_tract.RData')
 
-mapview(tb_blockgroup)
+mapview(st_geometry(tb_blockgroup))
 ```
 
 You can see that some blocks/tracts are only representative of the bay. We can clean up this data by retaining only the tracts in which the total population recorded in the latest American Community Survey ("ACSTOTPOP") was above zero. This will remove tracts in which no people reside (e.g., large waterbodies, parks, or other natural areas).
@@ -41,7 +38,7 @@ tb_blockgroup <- tb_blockgroup %>%
 tb_tract <- tb_tract %>%
   filter(ACSTOTPOP > 0)
 
-mapview(tb_blockgroup)
+mapview(st_geometry(tb_blockgroup))
 ```
 
 # Projects funded by BIL
@@ -63,7 +60,9 @@ The EPA uses the EJScreen Supplemental Demographic Index to identify underserved
 If the Supplemental Demographic Index score in a block group exceeds the 80th percentile nationally, it will be identified by the EPA as a disadvantaged community for the purposes of tracking Justice40 investments and benefits. View the percentiles by census block group using the code below.
 
 ```{r}
-mapview(tb_blockgroup, zcol = "P_VULEOPCT", at = seq(0, 100, 20), layer.name = "Supp. Demographic Index (percentile)")
+tb_blockgroup %>% 
+  select(P_VULEOPCT) %>% 
+  mapview(zcol = "P_VULEOPCT", at = seq(0, 100, 20), layer.name = "Supp. Demographic Index (percentile)")
 ```
 
 Extract the block groups meeting the EPA's threshold. These will be the communities used to guide BIL funded projects to meet Justice40 goals.
@@ -73,7 +72,9 @@ underserved_BIL <- tb_blockgroup %>%
   filter(P_VULEOPCT >= 80) %>%
   mutate(funding = "BIL")
 
-mapview(underserved_BIL, label = "P_VULEOPCT")
+underserved_BIL %>% 
+  select(P_VULEOPCT) %>% 
+  mapview(label = "P_VULEOPCT")
 ```
 
 You can save this final data as an RData object for future use.
@@ -110,13 +111,17 @@ underserved_other <- tb_tract %>%
 View a map showing the number of thresholds met per census tract (you may adapt to a different color scale of your choice).
 
 ```{r}
-mapview(underserved_other, zcol = "threshold_N", col.regions = brewer.pal(6, "Reds"), layer.name = "No. of Thresholds Met")
+underserved_other %>% 
+  select(threshold_N) %>% 
+  mapview(zcol = "threshold_N", col.regions = brewer.pal(6, "Reds"), layer.name = "No. of Thresholds Met")
 ```
 
 View the tracts that meet our more inclusive definition of underserved communities. The areas in red are those that rank in the 80th percentile (or greater) nationally in 2 or more of the demographic screening variables. They will serve as priority areas for increasing the equitable distribution of benefits from TBEP's non-BIL funded environmental programs.
 
 ```{r}
-mapview(underserved_other, zcol = "underserved", col.regions = list("gray","red"), layer.name = "Underserved Communities (non-BIL)")
+underserved_other %>% 
+  select(underserved) %>% 
+  mapview(zcol = "underserved", col.regions = list("gray","red"), layer.name = "Underserved Communities (non-BIL)")
 ```
 
 You can save this final data as an RData object for future use.
@@ -135,7 +140,15 @@ save(underserved_other, file = 'data/underserved_other.RData')
 We can visualize the underserved census block groups meeting the EPA requirements for BIL funded projects against the backdrop of our more inclusive definition of underserved census tracts suitable for projects funded through other sources.
 
 ```{r}
-mapview(underserved_other, zcol= "funding", col.region = "red", layer.name = "Project Funding") + mapview(underserved_BIL, zcol = "funding", col.region = "blue", layer.name = "Project Funding")
+m1 <- underserved_other %>% 
+  select(funding) %>% 
+  mapview(zcol= "funding", col.region = "red", layer.name = "Project Funding")
+
+m2 <- underserved_BIL %>% 
+  select(funding) %>% 
+  mapview(zcol = "funding", col.region = "blue", layer.name = "Project Funding")
+
+m1 + m2
 ```
 
 
@@ -219,7 +232,8 @@ Calculate the proportion of each drainage basin containing underserved communiti
 tb_dbasins_under <- tb_dbasins_under %>%
   mutate(under_area_ft = ifelse(is.na(under_area_ft), 0, under_area_ft)) %>%
   mutate(pct_under = under_area_ft/db_area_ft * 100) %>%
-  mutate(pct_under = as.numeric(pct_under))
+  mutate(pct_under = as.numeric(pct_under)) %>% 
+  select(WATERBODY_NAME, pct_under)
 ```
 
 Create a map showing priority drainage basins based on the presence of underserved communities. Hover over the drainage basins to view the name of the water body assessment unit.
@@ -227,5 +241,7 @@ Create a map showing priority drainage basins based on the presence of underserv
 ```{r}
 mapviewOptions("basemaps.color.shuffle" = FALSE)
 
-mapview(tb_dbasins_under, zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), at = seq(0, 100, 20), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
+tb_dbasins_under %>% 
+  select(pct_under) %>% 
+  mapview(zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), at = seq(0, 100, 20), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
 ```
