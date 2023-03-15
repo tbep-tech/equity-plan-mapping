@@ -26,7 +26,9 @@ Load the census block group and tract data.
 load(file = 'data/tb_blockgroup.RData')
 load(file = 'data/tb_tract.RData')
 
-mapview(st_geometry(tb_blockgroup))
+tb_blockgroup %>%
+  select(-everything()) %>% 
+  mapview()
 ```
 
 You can see that some blocks/tracts are only representative of the bay. We can clean up this data by retaining only the tracts in which the total population recorded in the latest American Community Survey ("ACSTOTPOP") was above zero. This will remove tracts in which no people reside (e.g., large waterbodies, parks, or other natural areas).
@@ -38,7 +40,9 @@ tb_blockgroup <- tb_blockgroup %>%
 tb_tract <- tb_tract %>%
   filter(ACSTOTPOP > 0)
 
-mapview(st_geometry(tb_blockgroup))
+tb_blockgroup %>%
+  select(-everything()) %>% 
+  mapview()
 ```
 
 # Projects funded by BIL
@@ -163,6 +167,7 @@ The Florida Department of Environmental Protection provides the Waterbody IDs (W
 Load the drainage basin data.
 
 ```{r}
+#| cache: true
 dbasins <- st_read('https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/WBIDS/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')
 ```
 
@@ -188,6 +193,7 @@ underserved_other <- st_transform(underserved_other, crs = 6443)
 Keep only the land area within each drainage basin and census tract. We can exclude water areas by intersecting the layers with Florida's shoreline (available [here](https://geodata.myfwc.com/datasets/myfwc::florida-shoreline-1-to-12000-scale/about) from the Florida Fish and Wildlife Conservation Commission).
 
 ```{r}
+#| cache: true
 flshore <- st_read('https://atoll.floridamarine.org/arcgis/rest/services/FWC_GIS/OpenData_Shoreline/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')
 
 flshore <- st_transform(flshore, crs = 6443)
