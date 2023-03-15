@@ -18,6 +18,8 @@ library(sf)
 library(mapview)
 library(dplyr)
 library(RColorBrewer)
+
+mapviewOptions(fgb = TRUE)
 ```
 
 Load the census block group and tract data.
