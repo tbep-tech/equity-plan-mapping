@@ -29,8 +29,6 @@ format:
     css: styles.css
     code-tools:
       source: repo
-  pdf:
-    documentclass: scrreprt
 
 execute:
   echo: false
