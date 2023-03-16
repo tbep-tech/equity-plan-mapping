@@ -17,7 +17,7 @@ To identify underserved communities in Tampa Bay, we are guided by recommendatio
 
 ### Projects funded through BIL
 
-The 2021 [Bipartisan Infrastructure Law (BIL)]("https://www.transportation.gov/bipartisan-infrastructure-law"), implemented through the EPA and NEPs, provides approximately \$909,800 in annual funding to each NEP over 2022-2026. EPA has a goal to ensure that at least 40% of the benefits from BIL-funded projects during this period will flow to underserved (or disadvantaged) communities across all NEPs.
+The 2021 [Bipartisan Infrastructure Law (BIL)]("https://www.govinfo.gov/content/pkg/PLAW-117publ58/pdf/PLAW-117publ58.pdf"), as implemented by EPA through NEPs, provides approximately \$909,800 in annual funding to each NEP over 2022-2026. EPA has a goal to ensure that at least 40% of the benefits from BIL-funded projects during this period will flow to underserved (or disadvantaged) communities across all NEPs.
 
 The EPA uses the EJScreen Supplemental Demographic Index to identify disadvantaged communities at the block group level. The Index is based on an average of the following five demographic variables:
 
