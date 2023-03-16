@@ -108,55 +108,28 @@ View the data. It will look similar to the EJScreen data.
 #| echo: false
 #| eval: true
 load(file = 'data/dattbcejst.RData')
-```
-```{r}
+
 #| eval: true
 mapview(dattbcejst)
 ```
 
 Unfortunately, the census tracts from CEJST are not completely identical to the census tracts in EJScreen. The tracts provided by CEJST, when they do differ, are primarily at a larger scale (e.g., one CEJST tract may be split into 2 tracts in EJScreen data). We prefer to work from the higher resolution tracts (EJScreen), so we need to make sure, for each EJScreen tract, we pull the relevant data from the CEJST tract. Notably, some of the resulting tract data may not be entirely accurate, as percentiles may apply to the larger CEJST tract but not necessarily to the tracts as split by the EJScreen data. As of February 2023, the tract boundaries between EJScreen and CEJST have yet to be harmonized, but this may change in future versions of these tools.
 
-If you've already created the 'dattbindex' shapefile from "Mapping underserved communities," you can simply load that shapefile. Here, we'll load the 'dattb' shapefile and quickly replicate the creation of 'dattbindex' as a reminder.
-
-```{r}
-# if saved
-load(file = 'data/dattbindex.Rdata')
-
-# otherwise replicate
-load(file = 'data/dattb.RData')
-
-dattbindex <- dattb %>%
-  filter(ACSTOTPOP > 0) %>%
-  mutate(threshold_income = ifelse(P_LWINCPCT >= 80, 1, 0),
-         threshold_unempl = ifelse(P_UNEMPPCT >= 80, 1, 0),
-         threshold_lingui = ifelse(P_LNGISPCT >= 80, 1, 0),
-         threshold_educat = ifelse(P_LESHSPCT >= 80, 1, 0),
-         threshold_lifexp = ifelse(P_LIFEEXPCT >= 80, 1, 0)) %>%
-  rowwise() %>%
-  select(matches('^threshold|^ID')) %>% 
-  mutate(threshold_N = sum(threshold_income,threshold_unempl,threshold_lingui,threshold_educat,threshold_lifexp, na.rm = TRUE)) %>%
-  mutate(underserved = ifelse(threshold_N > 1, "Yes", "No"))
-```
-
-Keep only those tracts that are classified as underserved.
+Load the 'underserved_other' shapefile created from "Mapping underserved communities".
 
 ```{r}
 #| echo: false
 #| eval: true
-load(file = 'data/dattbindex.RData')
-```
-```{r}
-#| eval: true
-dattbunder <- dattbindex %>%
-  filter(underserved == "Yes")
+load(file = 'data/underserved_other.Rdata')
 
-mapview(dattbunder, layer.name = "Underserved Communities")
+mapview(underserved_other, layer.name = "Underserved Communities (non-BIL)")
 ```
 
-We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into 'dattbunder'. Similar to the thresholds defined for identifying underserved communities, we define "overburdened" communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.
+
+We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into 'underserved_other'. Similar to the thresholds defined for identifying underserved communities, we define "overburdened" communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.
 
 ```{r}
-cejstvalues <- st_point_on_surface(dattbunder) %>%
+cejstvalues <- st_point_on_surface(underserved_other) %>%
   st_intersection(dattbcejst) %>%
   mutate(thresholdEJ_agloss = ifelse(EALR_PFS >= 0.80, 1, 0),
          thresholdEJ_floodr = ifelse(FLD_PFS >= 0.80, 1, 0),
@@ -172,7 +145,7 @@ cejstvalues <- st_point_on_surface(dattbunder) %>%
   select(matches('^thresholdEJ|^ID')) %>%
   as.data.frame()
 
-dattbunder_cejst <- left_join(dattbunder, cejstvalues, by = 'ID')
+underserved_cejst <- left_join(underserved_other, cejstvalues, by = 'ID')
 ```
 
 ## Mining Data
@@ -184,6 +157,7 @@ Spatial data is available from the Florida Department of Environmental Protectio
 The shapefile can be read in directly with `st_read`.
 
 ```{r}
+#| cache: true
 mined <- st_read('https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/MMP_MINEDUNITS/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')
 mapview(mined)
 ```
@@ -191,9 +165,10 @@ mapview(mined)
 CEJST considers any census tract containing abandoned coal mines to be significantly burdened. We adopt the same approach for phosphate mines in Tampa Bay. Create an indicator for tracts that overlap with the phosphate mining units.
 
 ```{r}
+#| cache: true
 sf_use_s2(FALSE)
 
-maxval <- dattbunder_cejst %>%
+maxval <- underserved_cejst %>%
   st_join(mined) %>%
   mutate(SITE_ID = coalesce(SITE_ID, 0)) %>% 
   mutate(dummyvar = ifelse(SITE_ID > 0, 1, 0)) %>%
@@ -201,7 +176,7 @@ maxval <- dattbunder_cejst %>%
   summarise(thresholdEJ_phmine = max(dummyvar)) %>%
   as.data.frame()
 
-dattbunder_cejst_mines <- left_join(dattbunder_cejst, maxval, by = 'ID')
+underserved_cejst_mines <- left_join(underserved_cejst, maxval, by = 'ID')
 ```
 
 ## Brownfield Data
@@ -211,6 +186,7 @@ Properties in which expansion, redevelopment, or reuse may be complicated by the
 Download the zipped KML file to a temporary directory.
 
 ```{r}
+#| cache: true
 # url with zipped kml
 urlin <- 'https://ordsext.epa.gov/FLA/www3/acres_frs.kmz'
 
@@ -293,6 +269,7 @@ You can see the locations of all brownfield sites from the ACRES database across
 Load the national census tract data from EJScreen if you have it saved from [Getting demographic data](ejscreen.html). If not, download the data again using the same steps as before.
 
 ```{r}
+#| cache: true
 # url with zip gdb to download
 urlin <- 'https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip'
 
@@ -310,21 +287,23 @@ gdbpth <- gsub('\\\\', '/', gdbpth)
 lyr <- st_layers(gdbpth)$name
 
 # read the layer, keep only the tract ID to reduce size
-ejscreen <- st_read(dsn = gdbpth, lyr) %>%
+us_tract <- st_read(dsn = gdbpth, lyr) %>%
   rowwise() %>%
-  select(matches('^ID')) 
+  select(matches('^ID'))
 ```
 
 First, we need to transform the brownfield and national EJScreen census tract data to an appropriate projected coordinate system so we can reliably calculate distances. For the U.S. (including Alaska and Hawaii), we will use the North America Albers Equal Area Conic (EPSG: 9822) projection.
 
 ```{r}
+#| cache: true
 bfields <- st_transform(allbfld, crs = 9822)
-tracts <- st_transform(ejscreen, crs = 9822)
+tracts <- st_transform(us_tract, crs = 9822)
 ```
 
 In line with the methodology for calculating proximity to hazardous waste facilities and Superfund sites, we will calculate each census tract's proximity to brownfield sites as (1) the number of brownfield sites within 5 km of the tract divided by 5 km, or (2) if there are no sites within 5 km, then 1 divided by the distance to the nearest site. We will use Euclidean distances. Note that the units for distances will be in meters.
 
 ```{r}
+#| cache: true
 # 5 km buffer (this will take several minutes)
 tractsbuff <- st_buffer(tracts, dist = 5000, endCapStyle = "ROUND")
 
@@ -343,21 +322,27 @@ proxbfield <- left_join(tractsbuff, joined, by = 'ID') %>%
   mutate(proximity = ifelse(brownfields_N > 0, brownfields_N/5000, 1/dist_m),
          percentile = ntile(proximity, 100),
          thresholdEJ_bfield = ifelse(percentile >= 80, 1, 0))
+```
 
-dattbunder_cejst_mines_bfields <- left_join(dattbunder_cejst_mines, proxbfield, by = 'ID') %>%
+Merge with previous metrics.
+
+```{r}
+underserved_cejst_mines_bfields <- left_join(underserved_cejst_mines, proxbfield, by = 'ID') %>%
   mutate(thresholdEJ_N = sum(thresholdEJ_agloss,thresholdEJ_floodr,thresholdEJ_greens,thresholdEJ_pm2.5,thresholdEJ_trafic,thresholdEJ_wastew,thresholdEJ_hwaste,thresholdEJ_ugtank,thresholdEJ_sfunds,thresholdEJ_redlin,thresholdEJ_phmine,thresholdEJ_bfield, na.rm = TRUE)) %>%
   mutate(overburdened = ifelse(thresholdEJ_N > 0, "Yes", "No")) %>%
   rowwise() %>%
-  select(matches('^threshold|^ID|^under|^over'))
+  select(matches('^threshold|^ID|^under|^over|^funding'))
+
+under_over <- underserved_cejst_mines_bfields
 ```
+
 
 Save this final layer as an RData object for future use.
 
 ```{r}
 #| eval: false
 # save the layer as an RData object
-dattbunderover <- dattbunder_cejst_mines_bfields
-save(dattbunderover, file = 'data/dattbunderover.RData')
+save(under_over, file = 'data/under_over.RData')
 ```
 
 Unlink the temporary files to delete them when you are finished.
