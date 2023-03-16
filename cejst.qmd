@@ -122,6 +122,7 @@ Load the 'underserved_other' shapefile created from "Mapping underserved communi
 #| eval: true
 load(file = 'data/underserved_other.Rdata')
 
+#| eval: true
 mapview(underserved_other, layer.name = "Underserved Communities (non-BIL)")
 ```
 
