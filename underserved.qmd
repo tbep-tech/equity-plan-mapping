@@ -28,7 +28,7 @@ load(file = 'data/tb_tract.RData')
 
 tb_blockgroup %>%
   select(-everything()) %>% 
-  mapview()
+  mapview(layer.name = "Block groups")
 ```
 
 You can see that some blocks/tracts are only representative of the bay. We can clean up this data by retaining only the tracts in which the total population recorded in the latest American Community Survey ("ACSTOTPOP") was above zero. This will remove tracts in which no people reside (e.g., large waterbodies, parks, or other natural areas).
@@ -42,7 +42,7 @@ tb_tract <- tb_tract %>%
 
 tb_blockgroup %>%
   select(-everything()) %>% 
-  mapview()
+  mapview(layer.name = "Block groups")
 ```
 
 # Projects funded by BIL
@@ -52,13 +52,9 @@ The 2021 Bipartisan Infrastructure Law (BIL), implemented through the EPA and NE
 The EPA uses the EJScreen Supplemental Demographic Index to identify underserved communities at the block group level. The Index is based on an average of the following five demographic variables:
 
 -   Percent classified as low income
-
 -   Percent unemployed
-
 -   Percent linguistically isolated (i.e., limited English speaking)
-
 -   Percent with less than a high school education
-
 -   Percent with low life expectancy
 
 If the Supplemental Demographic Index score in a block group exceeds the 80th percentile nationally, it will be identified by the EPA as a disadvantaged community for the purposes of tracking Justice40 investments and benefits. View the percentiles by census block group using the code below.
@@ -77,8 +73,8 @@ underserved_BIL <- tb_blockgroup %>%
   mutate(funding = "BIL")
 
 underserved_BIL %>% 
-  select(P_VULEOPCT) %>% 
-  mapview(label = "P_VULEOPCT")
+  select(funding) %>% 
+  mapview(layer.name = "Underserved Communities")
 ```
 
 You can save this final data as an RData object for future use.
@@ -146,11 +142,11 @@ We can visualize the underserved census block groups meeting the EPA requirement
 ```{r}
 m1 <- underserved_other %>% 
   select(funding) %>% 
-  mapview(zcol= "funding", col.region = "red", layer.name = "Project Funding")
+  mapview(zcol= "funding", col.region = "red", alpha.regions = 1, layer.name = "Project Funding")
 
 m2 <- underserved_BIL %>% 
   select(funding) %>% 
-  mapview(zcol = "funding", col.region = "blue", layer.name = "Project Funding")
+  mapview(zcol = "funding", col.region = "blue", alpha.regions = 1, layer.name = "Project Funding")
 
 m1 + m2
 ```
@@ -248,6 +244,6 @@ Create a map showing priority drainage basins based on the presence of underserv
 mapviewOptions("basemaps.color.shuffle" = FALSE)
 
 tb_dbasins_under %>% 
-  select(pct_under) %>% 
+  select(WATERBODY_NAME, pct_under) %>% 
   mapview(zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), at = seq(0, 100, 20), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
 ```
