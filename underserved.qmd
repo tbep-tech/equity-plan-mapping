@@ -187,6 +187,8 @@ underserved_dbasins <- tb_dbasins_under %>%
 Create a map showing priority drainage basins based on the presence of underserved communities. Hover over the drainage basins to view the name of the water body assessment unit.
 
 ```{r}
+mapviewOptions("basemaps.color.shuffle" = FALSE)
+
 underserved_dbasins %>% 
   select(WATERBODY_NAME, pct_under) %>% 
   mapview(zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
@@ -195,6 +197,8 @@ underserved_dbasins %>%
 Exclude drainage basins with no underserved communities present. 
 
 ```{r}
+mapviewOptions("basemaps.color.shuffle" = FALSE)
+
 underserved_dbasins %>% 
   select(WATERBODY_NAME, pct_under) %>% 
   filter(pct_under > 0) %>%
