@@ -15,11 +15,9 @@ We have created this webpage to increase transparency and reproducibility of the
 
 To identify underserved communities in Tampa Bay, we are guided by recommendations provided by the Environmental Protection Agency (EPA), as well as our own local knowledge and experience with the diverse population of more than 3 million people across the Tampa Bay watershed.
 
-### Projects funded through BIL
-
 The 2021 [Bipartisan Infrastructure Law (BIL)](%22https://www.govinfo.gov/content/pkg/PLAW-117publ58/pdf/PLAW-117publ58.pdf%22), as implemented by EPA through NEPs, provides approximately \$909,800 in annual funding to each NEP over 2022-2026. EPA has a goal to ensure that at least 40% of the benefits from BIL-funded projects during this period will flow to underserved (or disadvantaged) communities across all NEPs.
 
-The EPA uses the EJScreen Supplemental Demographic Index to identify disadvantaged communities at the block group level. The Index is based on an average of the following five demographic variables:
+The EPA uses the EJScreen Supplemental Demographic Index to identify disadvantaged communities. The Index is based on an average of the following five demographic variables:
 
 -   Percent classified as low income
 -   Percent unemployed
@@ -27,7 +25,7 @@ The EPA uses the EJScreen Supplemental Demographic Index to identify disadvantag
 -   Percent with less than a high school education
 -   Percent with low life expectancy
 
-TBEP applies a more inclusive definition of underserved communities to identify opportunities for increasing environmental justice throughout the watershed. For this broader definition, we define underserved communities as those that fall within the 80th percentile (or higher) nationally for two or more of the five demographic variables listed above.
+TBEP applies a more inclusive definition of underserved communities to identify opportunities for increasing environmental justice throughout the watershed. For this broader definition, we define "underserved" communities as those that fall within the 80th percentile (or higher) nationally for two or more of the five demographic variables listed above.
 
 Additionally, our Equity Strategy recognizes the importance of tailoring TBEP's environmental programs to address the most significant challenges facing different underserved communities in Tampa Bay. In an effort to promote environmental justice within our region, our approach also characterizes underserved communities according to the unique burdens they are facing that could realistically be mitigated by TBEP activities. We define "overburdened" communities as those that fall within the 80th percentile (or higher) nationally for one or more of the following 12 environmental justice issues:
 
@@ -53,11 +51,11 @@ library(dplyr)
 
 load(file = 'data/underserved_tract.RData')
 load(file = 'data/underserved_dbasins.RData')
-load(file = 'data/under_over.RData')
+load(file = 'data/tb_equity.RData')
 
 underserved_tract %>%
   filter(underserved == "Yes") %>%
-  mapview(col.regions = "red", layer.name = "Underserved Tracts")
+  mapview(col.regions = "red", layer.name = "Underserved Census Tracts")
 ```
 
 ## Drainage basins containing underserved communities
@@ -79,8 +77,8 @@ underserved_dbasins %>%
 
 mapviewOptions("basemaps.color.shuffle" = FALSE)
 
-under_over %>%
-  mapview(zcol = "thresholdEJ_N", col.regions = brewer.pal(8, "YlOrRd"), layer.name = "No. of Burdens", label = "thresholdEJ_N")
+tb_equity %>%
+  mapview(zcol = "thresholdEJ_N", col.regions = brewer.pal(8, "YlOrRd"), layer.name = "No. of Burdens", label = "EJissues1")
 ```
 
 Navigate through the Methods pages to create this data and replicate these maps.
