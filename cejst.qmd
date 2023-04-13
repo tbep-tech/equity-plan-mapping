@@ -115,22 +115,22 @@ mapview(dattbcejst)
 
 Unfortunately, the census tracts from CEJST are not completely identical to the census tracts in EJScreen. The tracts provided by CEJST, when they do differ, are primarily at a larger scale (e.g., one CEJST tract may be split into 2 tracts in EJScreen data). We prefer to work from the higher resolution tracts (EJScreen), so we need to make sure, for each EJScreen tract, we pull the relevant data from the CEJST tract. Notably, some of the resulting tract data may not be entirely accurate, as percentiles may apply to the larger CEJST tract but not necessarily to the tracts as split by the EJScreen data. As of February 2023, the tract boundaries between EJScreen and CEJST have yet to be harmonized, but this may change in future versions of these tools.
 
-Load the 'underserved_other' shapefile created from "Mapping underserved communities".
+Load the 'underserved_tract' shapefile created from "Mapping underserved communities".
 
 ```{r}
 #| echo: false
 #| eval: true
-load(file = 'data/underserved_other.RData')
+load(file = 'data/underserved_tract.RData')
 
 #| eval: true
-mapview(underserved_other, layer.name = "Underserved Communities (non-BIL)")
+mapview(underserved_tract, layer.name = "Underserved Communities")
 ```
 
 
-We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into 'underserved_other'. Similar to the thresholds defined for identifying underserved communities, we define "overburdened" communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.
+We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into 'underserved_tract'. Similar to the thresholds defined for identifying underserved communities, we define "overburdened" communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.
 
 ```{r}
-cejstvalues <- st_point_on_surface(underserved_other) %>%
+cejstvalues <- st_point_on_surface(underserved_tract) %>%
   st_intersection(dattbcejst) %>%
   mutate(thresholdEJ_agloss = ifelse(EALR_PFS >= 0.80, 1, 0),
          thresholdEJ_floodr = ifelse(FLD_PFS >= 0.80, 1, 0),
@@ -146,7 +146,7 @@ cejstvalues <- st_point_on_surface(underserved_other) %>%
   select(matches('^thresholdEJ|^ID')) %>%
   as.data.frame()
 
-underserved_cejst <- left_join(underserved_other, cejstvalues, by = 'ID')
+underserved_cejst <- left_join(underserved_tract, cejstvalues, by = 'ID')
 ```
 
 ## Mining Data
