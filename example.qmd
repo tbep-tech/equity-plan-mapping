@@ -334,7 +334,6 @@ ggplot(under_over_burdens, aes(x = Burden, y = Communities_N)) +
   scale_y_continuous(position = "right")
 ```
 
-
 #### Types of activities undertaken in these underserved communities
 
 You can make additional maps to characterize communities based on the restoration activities. For example, we can map the restoration techniques of projects that benefited underserved communities. The maps generated below show the underserved communities benefiting from planting (green), oyster gardening (black), shoreline enhancement/stabilization (brown), and invasive species control/removal (blue) activities.
