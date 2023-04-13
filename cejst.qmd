@@ -332,7 +332,7 @@ underserved_cejst_mines_bfields <- left_join(underserved_cejst_mines, proxbfield
   mutate(thresholdEJ_N = sum(thresholdEJ_agloss,thresholdEJ_floodr,thresholdEJ_greens,thresholdEJ_pm2.5,thresholdEJ_trafic,thresholdEJ_wastew,thresholdEJ_hwaste,thresholdEJ_ugtank,thresholdEJ_sfunds,thresholdEJ_redlin,thresholdEJ_phmine,thresholdEJ_bfield, na.rm = TRUE)) %>%
   mutate(overburdened = ifelse(thresholdEJ_N > 0, "Yes", "No")) %>%
   rowwise() %>%
-  select(matches('^threshold|^ID|^under|^over|^funding'))
+  select(matches('^threshold|^ID|^under|^over'))
 
 under_over <- underserved_cejst_mines_bfields
 ```
