@@ -48,9 +48,9 @@ library(RColorBrewer)
 
 ## CEJST Data
 
-The U.S. Council on Environmental Quality has developed the Climate and Economic Justice Screening Tool ([CEJST](https://screeningtool.geoplatform.gov/en/about)) to assist users in identifying overburdened communities using a similar methodology as EJScreen, in which national percentiles are used as thresholds for flagging census tracts that are significantly burdened by one or more indicators spanning climate change, energy, health, housing, pollution, and other dimensions. The data is available from <https://screeningtool.geoplatform.gov/en/downloads>.
+The U.S. Council on Environmental Quality has developed the Climate and Economic Justice Screening Tool ([CEJST](https://screeningtool.geoplatform.gov/en/about){target="_blank"}) to assist users in identifying overburdened communities using a similar methodology as EJScreen, in which national percentiles are used as thresholds for flagging census tracts that are significantly burdened by one or more indicators spanning climate change, energy, health, housing, pollution, and other dimensions. The data is available from [https://screeningtool.geoplatform.gov/en/downloads](https://screeningtool.geoplatform.gov/en/downloads){target="_blank"}.
 
-CEJST provides the percentiles we need for 10 out of the 12 variables we use for identifying overburdened communities. Below are brief descriptions of the variables and how they are estimated, and more information about the data, sources, and methodologies can be found [here](https://screeningtool.geoplatform.gov/en/methodology).
+CEJST provides the percentiles we need for 10 out of the 12 variables we use for identifying overburdened communities. Below are brief descriptions of the variables and how they are estimated, and more information about the data, sources, and methodologies can be found [here](https://screeningtool.geoplatform.gov/en/methodology){target="_blank'}.
 
 -   *Expected agricultural loss rate*: Expected agricultural value at risk from losses due to fourteen types of natural hazards linked to climate change.
 -   *Projected flood risk*: Number of properties at risk of floods occurring in the next 30 years from tides, rain, riverine or storm surges based on a climate-adjusted model.
@@ -63,7 +63,7 @@ CEJST provides the percentiles we need for 10 out of the 12 variables we use for
 -   *Underground storage tanks and releases*: Density of leaking underground storage tanks divided by all active underground storage tanks within 1,500 ft.
 -   *Wastewater discharge*: Modeled toxic concentrations in stream segments within 500 m, divided by distance.
 
-Download the CEJST zip file to temp directory and unzip to temp directory.
+Download the CEJST zip file to a temporary directory and unzip it to a second temporary directory.
 
 ```{r}
 #| cache: true
@@ -108,8 +108,8 @@ View the data. It will look similar to the EJScreen data.
 #| echo: false
 #| eval: true
 load(file = 'data/dattbcejst.RData')
-
-#| eval: true
+```
+```{r}
 mapview(dattbcejst)
 ```
 
@@ -118,11 +118,9 @@ Unfortunately, the census tracts from CEJST are not completely identical to the 
 Load the 'underserved_tract' shapefile created from "Mapping underserved communities".
 
 ```{r}
-#| echo: false
 #| eval: true
 load(file = 'data/underserved_tract.RData')
 
-#| eval: true
 mapview(underserved_tract, layer.name = "Underserved Communities")
 ```
 
@@ -151,15 +149,20 @@ underserved_cejst <- left_join(underserved_tract, cejstvalues, by = 'ID')
 
 ## Mining Data
 
-Although CEJST provides data on abandoned coal mines, phosphate mining is a unique characteristic of Florida, and especially Tampa Bay. Of the 78 phosphate mining operations in the U.S. recorded by the [U.S. Geological Survey](https://mrdata.usgs.gov/phosphate/), 29 (37%) are located in Florida, and 13 (17%) are within the Tampa Bay watershed. The potential impacts of phosphate mining are thus a unique burden to communities in our watershed, which is why we have opted to include phosphate rather than coal mines in our identification of overburdened communities.
+Although CEJST provides data on abandoned coal mines, phosphate mining is a unique characteristic of Florida, and especially Tampa Bay. Of the 78 phosphate mining operations in the U.S. recorded by the [U.S. Geological Survey](https://mrdata.usgs.gov/phosphate/){target="_blank"}, 29 (37%) are located in Florida, and 13 (17%) are within the Tampa Bay watershed. The potential impacts of phosphate mining are thus a unique burden to communities in our watershed, which is why we have opted to include phosphate rather than coal mines in our identification of overburdened communities.
 
-Spatial data is available from the Florida Department of Environmental Protection (FDEP) [here](https://geodata.dep.state.fl.us/datasets/FDEP::mandatory-phosphate-mined-units/about). This is provided as a polygon layer, showing all active mandatory phosphate mines in Florida as of 2019. See the FDEP website for more details on the dataset.
+Spatial data is available from the Florida Department of Environmental Protection (FDEP) [here](https://geodata.dep.state.fl.us/datasets/FDEP::mandatory-phosphate-mined-units/about){target="_blank"}. This is provided as a polygon layer, showing all active mandatory phosphate mines in Florida as of 2019. See the FDEP website for more details on the dataset.
 
 The shapefile can be read in directly with `st_read`.
 
 ```{r}
 #| cache: true
 mined <- st_read('https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/MMP_MINEDUNITS/MapServer/0/query?outFields=*&where=1%3D1&f=geojson')
+```
+
+View a map of all active mandatory phosphate mines in Florida.
+
+```{r}
 mapview(mined)
 ```
 
@@ -182,7 +185,7 @@ underserved_cejst_mines <- left_join(underserved_cejst, maxval, by = 'ID')
 
 ## Brownfield Data
 
-Properties in which expansion, redevelopment, or reuse may be complicated by the potential presence of contaminants, called "brownfields," are another important burden to some communities in Tampa Bay. While CEJST and EJScreen do not include the proximity of census tracts to brownfield sites in their national percentiles, the EPA hosts a database with the lat/lon coordinates of brownfield properties, called the Assessment, Cleanup, and Redevelopment Exchange System (ACRES). The data is available as KML point data [here](https://www.epa.gov/frs/geospatial-data-download-service).
+Properties in which expansion, redevelopment, or reuse may be complicated by the potential presence of contaminants, called "brownfields," are another important burden to some communities in Tampa Bay. While CEJST and EJScreen do not include the proximity of census tracts to brownfield sites in their national percentiles, the EPA hosts a database with the lat/lon coordinates of brownfield properties, called the Assessment, Cleanup, and Redevelopment Exchange System (ACRES). The data is available as KML point data [here](https://www.epa.gov/frs/geospatial-data-download-service){target="_blank"}.
 
 Download the zipped KML file to a temporary directory.
 

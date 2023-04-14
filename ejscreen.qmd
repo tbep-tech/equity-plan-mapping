@@ -18,13 +18,14 @@ Load the required R packages (install first as needed).
 #| eval: true
 library(sf)
 library(mapview)
+library(dplyr)
 ```
 
 To collect demographic data that will be used for identifying underserved communities, we will be downloading U.S. census data provided by the EPA's 2022 Environmental Justice Screening Tool (EJScreen). This data is available from [https://gaftp.epa.gov/EJSCREEN/2022/](https://gaftp.epa.gov/EJSCREEN/2022/){target="_blank"}. Here you will find different versions of EJScreen data that are summarized, calculated, and visualized in different ways to meet your particular needs (e.g., census blocks or tracts, state or national percentiles, tabular or spatial data).
 
 In our case, we are interested in obtaining spatial data for the supplemental demographic indices, summarized at the census tract level, using national percentiles as our thresholds for identifying underserved communities. Census tracts represent aggregated block groups of 1,200-8,000 people. This level is advantageous because it is the highest resolution for which the federal government provides standardized demographic, socioeconomic, and environmental data.
 
-The appropriate file to download for our requirements at the tract level is "EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip".
+The appropriate file to download for our requirements at the tract level is [EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip](https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip).
 
 Download the relevant file from EJScreen. The file is downloaded to a temporary directory (\~260mb).
 
@@ -60,7 +61,7 @@ lyr <- st_layers(gdbpth)$name
 dat <- st_read(dsn = gdbpth, lyr)
 ```
 
-To exclude census tracts outside of our watershed boundary, intersect the layer with the Tampa Bay watershed. If working in a different area, you will want to replace the `tbshed` shapefile with your own boundary file.
+To exclude census tracts outside of our watershed boundary, intersect the layer with the Tampa Bay watershed (available as an RData object in the source repository for this website [here](https://github.com/tbep-tech/equity-plan-mapping/tree/main/data){target="_blank"}). If working in a different area, you will want to replace the `tbshed` shapefile with your own boundary file.
 
 ```{r}
 #| eval: false
@@ -81,15 +82,16 @@ The layer can be saved as an RData object if needed. The size should be minimal 
 save(tb_tract, file = 'data/tb_tract.RData')
 ```
 
-View the data using mapview. You can see that we now have the desired spatial data just for our watershed.
+View the data using mapview (only the spatial data are shown). You can see that we now have the desired spatial data just for our watershed.
 
 ```{r}
 #| eval: true
 load(file = 'data/tb_tract.RData')
 
-mapview(tb_tract)
+tb_tract %>%
+  select(-everything()) %>% 
+  mapview(layer.name = "Census tracts")
 ```
-
 
 Unlink the temporary files to delete them when you are finished.
 

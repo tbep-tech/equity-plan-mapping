@@ -10,6 +10,13 @@ website:
     right: |
       This website was built with <a href="https://quarto.org/" target="_blank">Quarto</a>
   navbar:
+    tools:
+      - icon: github
+        menu:
+          - text: Source Code
+            url:  https://github.com/tbep-tech/equity-plan-mapping
+          - text: Report a Bug
+            url:  https://github.com/tbep-tech/equity-plan-mapping/issues
     logo: tarpon.png
     left:
       - href: index.qmd
@@ -22,20 +29,11 @@ website:
           - cejst.qmd
           - overburdened.qmd
           - example.qmd
-    tools:
-      - icon: github
-        menu:
-          - text: Source Code
-            url:  https://github.com/tbep-tech/equity-plan-mapping
-          - text: Report a Bug
-            url:  https://github.com/tbep-tech/equity-plan-mapping/issues
 
 format:
   html:
     theme: cosmo
     css: styles.css
-    code-tools:
-      source: repo
 
 execute:
   echo: false

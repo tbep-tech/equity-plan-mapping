@@ -19,7 +19,7 @@ library(dplyr)
 library(RColorBrewer)
 ```
 
-Load the census tract data.
+Load the census tract data and map only the spatial data.
 
 ```{r}
 #| out-width: "100%"
@@ -30,14 +30,12 @@ tb_tract %>%
   mapview(layer.name = "Census tracts")
 ```
 
-You can see that some tracts are only representative of the bay. We can clean up this data by retaining only the tracts in which the total population recorded in the latest American Community Survey ("ACSTOTPOP") was above zero. This will remove tracts in which no people reside (e.g., large waterbodies, parks, or other natural areas).
+You can see that some tracts are only representative of the bay. We can clean up this data by retaining only the tracts in which the total population recorded in the latest American Community Survey ("ACSTOTPOP" attribute field) was above zero. This will remove tracts in which no people reside (e.g., large waterbodies, parks, or other natural areas).
 
 ```{r}
 tb_tract <- tb_tract %>%
   filter(ACSTOTPOP > 0)
 ```
-
-
 
 # Projects funded by BIL
 
@@ -103,7 +101,7 @@ While the census tract delineations provide a practical map for identifying targ
 
 For environmental planning purposes, TBEP will thus characterize unique water body assessment units according to the proportion of each unit containing underserved census tracts. This approach serves as a bridge between social and ecological units relevant to different stakeholders across Tampa Bay.
 
-The Florida Department of Environmental Protection provides the Waterbody IDs (WBIDs) dataset, available [here](https://geodata.dep.state.fl.us/datasets/FDEP::waterbody-ids-wbids/about), which includes polygons delineating the drainage basins surrounding water body assessment units.
+The Florida Department of Environmental Protection provides the Waterbody IDs (WBIDs) dataset, available [here](https://geodata.dep.state.fl.us/datasets/FDEP::waterbody-ids-wbids/about){target="_blank"}, which includes polygons delineating the drainage basins surrounding water body assessment units.
 
 Load the drainage basin data.
 
@@ -131,7 +129,7 @@ tb_dbasins <- st_transform(tb_dbasins, crs = 6443)
 underserved_tract <- st_transform(underserved_tract, crs = 6443)
 ```
 
-Keep only the land area within each drainage basin and census tract. We can exclude water areas by intersecting the layers with Florida's shoreline (available [here](https://geodata.myfwc.com/datasets/myfwc::florida-shoreline-1-to-12000-scale/about) from the Florida Fish and Wildlife Conservation Commission).
+Keep only the land area within each drainage basin and census tract. We can exclude water areas by intersecting the layers with Florida's shoreline (available [here](https://geodata.myfwc.com/datasets/myfwc::florida-shoreline-1-to-12000-scale/about){target="_blank"} from the Florida Fish and Wildlife Conservation Commission).
 
 ```{r}
 #| cache: true

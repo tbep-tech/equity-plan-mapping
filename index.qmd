@@ -15,9 +15,9 @@ We have created this webpage to increase transparency and reproducibility of the
 
 To identify underserved communities in Tampa Bay, we are guided by recommendations provided by the Environmental Protection Agency (EPA), as well as our own local knowledge and experience with the diverse population of more than 3 million people across the Tampa Bay watershed.
 
-The 2021 [Bipartisan Infrastructure Law (BIL)](%22https://www.govinfo.gov/content/pkg/PLAW-117publ58/pdf/PLAW-117publ58.pdf%22), as implemented by EPA through NEPs, provides approximately \$909,800 in annual funding to each NEP over 2022-2026. EPA has a goal to ensure that at least 40% of the benefits from BIL-funded projects during this period will flow to underserved (or disadvantaged) communities across all NEPs.
+The 2021 [Bipartisan Infrastructure Law (BIL)](https://www.govinfo.gov/content/pkg/PLAW-117publ58/pdf/PLAW-117publ58.pdf){target="_blank"}, as implemented by EPA through the National Estuary Programs (NEPs), provides approximately \$909,800 in annual funding to each NEP over 2022-2026. EPA has a goal to ensure that at least 40% of the benefits from BIL-funded projects during this period will flow to underserved (or disadvantaged) communities across all NEPs.
 
-The EPA uses the EJScreen Supplemental Demographic Index to identify disadvantaged communities. The Index is based on an average of the following five demographic variables:
+The EPA uses the [EJScreen](https://www.epa.gov/ejscreen){target="_blank"} Supplemental Demographic Index to identify disadvantaged communities. The Index is based on an average of the following five demographic variables:
 
 -   Percent classified as low income
 -   Percent unemployed
