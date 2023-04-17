@@ -112,7 +112,8 @@ baseline5yr_dbint <- st_intersection(baseline5yr, underserved_dbasins) %>%
 summariesdb <- as.data.frame(baseline5yr_dbint)
 ```
 
-To identify which of these projects have downstream benefits to underserved communities, we need to visualize the various tributaries, canals, and other waterbodies flowing throughout the watershed. The Florida National Hydrography Dataset's Flowlines (24k) layer is available from the [Florida Department of Environmental Protection](https://geodata.dep.state.fl.us/datasets/FDEP::florida-national-hydrography-dataset-nhd-flowlines-24k/about). Because this is a large shapefile, we have already saved a clipped version of it. However, you can download and read the layer on your own using https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/NHD/MapServer/4/query?outFields=\*&where=1%3D1&f=geojson.
+To identify which of these projects have downstream benefits to underserved communities, we need to visualize the various tributaries, canals, and other waterbodies flowing throughout the watershed. The Florida National Hydrography Dataset's Flowlines (24k) layer is available from the [Florida Department of Environmental Protection](https://geodata.dep.state.fl.us/datasets/FDEP::florida-national-hydrography-dataset-nhd-flowlines-24k/about){target="_blank"}. Because this is a large shapefile, we have already saved a clipped version of it. However, you can download and read the layer on your own using
+<https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/NHD/MapServer/4/query?outFields=*&where=1%3D1&f=geojson>.
 
 ```{r}
 #| cache: true
@@ -324,7 +325,7 @@ under_over_burdens <- under_over_benefits %>%
          "Pollution: Phosphate Mines",
          "Pollution: Brownfield Sites"))
   
-ggplot(under_over_burdens, aes(x = Burden, y = Communities_N)) +
+ggplot(under_over_burdens, aes(x = reorder(Burden, -Communities_N), y = Communities_N)) +
   geom_bar(aes(fill = Burden), color = "black", stat = "identity") +
   xlab("\nEnvironmental Burden") +
   ylab("Number of Underserved Communities Benefiting from Projects\n") +
