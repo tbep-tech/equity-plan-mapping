@@ -49,7 +49,7 @@ The EPA uses the EJScreen Supplemental Demographic Index to identify disadvantag
 -   Percent with less than a high school education
 -   Percent with low life expectancy
 
-The EPA recommends flagging communities that fall within the 80th percentile (or higher) nationally as potentially disadvantaged. However, this index represents a relatively exclusive indicator of disadvantage. Some communities may face significant challenges but only meet the national threshold in two out of these five variables, ultimately falling below the EPA's Supplemental Demographic Index threshold.
+Based on the average percent across these variables, the EPA recommends flagging communities that fall within the 80th percentile (or higher) nationally as potentially disadvantaged. However, this index represents a relatively exclusive indicator of disadvantage. Some communities may face significant challenges but only meet the national threshold in two out of these five variables, ultimately falling below the EPA's Supplemental Demographic Index threshold.
 
 TBEP considers a more inclusive definition of underserved communities, in which a census tract must meet or exceed the 80th percentile in at least two of the five demographic screening variables. This approach increases the number of communities that could be considered underserved while reducing the number of errors in identification from meeting just one threshold (e.g., a community of predominantly wealthy retirees/unemployed residents). Aggregation to the census tract level also permits linking this layer with other socioeconomic and environmental data provided by the federal government at this same community delineation.
 
