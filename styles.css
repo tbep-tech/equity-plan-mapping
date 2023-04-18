@@ -55,6 +55,11 @@ h2,h3,h4,h5 {
   background-image: none !important;
 }
 
+.navbar-fg { /* foreground text color */
+  color: #fff !important;
+  background-image: none !important;
+}
+
 /* sidebar */
 
 .sidebar {
