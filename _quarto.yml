@@ -3,6 +3,7 @@ project:
 
 website:
   title: "TBEP Equity Strategy: Mapping"
+  repo-url: https://github.com/tbep-tech/equity-plan-mapping
   page-footer:
     left: |
       Website created by Blake Simmons and Marcus Beck
@@ -31,7 +32,6 @@ website:
 
 format:
   html:
-    theme: cosmo
     css: styles.css
 
 execute:
