@@ -12,6 +12,8 @@ execute:
 
 Below, we have provided instructions for downloading the data that will be used to identify underserved communities in Tampa Bay. To view instructions for cleaning the data and utilizing the demographic indices to map underserved communities, see [Mapping underserved communities](underserved.html).
 
+*UPDATE: In 2025, The U.S. Environmental Protection Agency removed all data we rely on for mapping underserved and overburdened communities in Tampa Bay, including EJScreen and CEJST. The instructions below have now been updated to reflect this change, which requires the user to download archived copies of these datasets from third party sources.*
+
 Load the required R packages (install first as needed).
 
 ```{r}
@@ -21,18 +23,18 @@ library(mapview)
 library(dplyr)
 ```
 
-To collect demographic data that will be used for identifying underserved communities, we will be downloading U.S. census data provided by the EPA's 2022 Environmental Justice Screening Tool (EJScreen). This data is available from [https://gaftp.epa.gov/EJSCREEN/2022/](https://gaftp.epa.gov/EJSCREEN/2022/){target="_blank"}. Here you will find different versions of EJScreen data that are summarized, calculated, and visualized in different ways to meet your particular needs (e.g., census blocks or tracts, state or national percentiles, tabular or spatial data).
+To collect demographic data that will be used for identifying underserved communities, we will be downloading U.S. census data originally provided by the EPA's 2022 Environmental Justice Screening Tool (EJScreen). Archived EJScreen data for 2015-2024 is available from the [Harvard Dataverse](https://doi.org/10.7910/DVN/JISNPL){target="_blank"}. Here you will find different versions of EJScreen data that are summarized, calculated, and visualized in different ways to meet your particular needs (e.g., census blocks or tracts, state or national percentiles, tabular or spatial data).
 
-In our case, we are interested in obtaining spatial data for the supplemental demographic indices, summarized at the census tract level, using national percentiles as our thresholds for identifying underserved communities. Census tracts represent aggregated block groups of 1,200-8,000 people. This level is advantageous because it is the highest resolution for which the federal government provides standardized demographic, socioeconomic, and environmental data.
+In our case, we are interested in obtaining spatial data for the supplemental demographic indices, summarized at the census tract level, using national percentiles as our thresholds for identifying underserved communities. Census tracts represent aggregated block groups of 1,200-8,000 people. This level is advantageous because it is the highest resolution for which the federal government provides standardized demographic, socioeconomic, and environmental data. However, this data is not available in the archived 2023 or 2024 EJScreen data, so we use the 2022 data.
 
-The appropriate file to download for our requirements at the tract level is [EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip](https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip).
+The appropriate file to download for our requirements at the tract level is named: *EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip*.
 
-Download the relevant file from EJScreen. The file is downloaded to a temporary directory (\~260mb).
+Download the  ZIP file (\~260mb), available from our public Dropbox repository, to a temporary directory.
 
 ```{r}
 #| eval: false
 # url with zip gdb to download
-urlin <- 'https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip'
+urlin <- 'https://www.dropbox.com/scl/fi/1hshluhorw2fgy3shkvjo/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip?rlkey=c1jyluowtutk9vhhhff7wlnfq&st=w6gs4y2r&dl=1'
 
 # download file
 tmp1 <- tempfile(fileext = ".zip")
@@ -48,7 +50,7 @@ tmp2 <- tempdir()
 utils::unzip(tmp1, exdir = tmp2)
 ```
 
-Read the polygon layer from the geodatabase.
+You can now work with the data in R. First, read the polygon layer from the geodatabase.
 
 ```{r}
 #| eval: false
