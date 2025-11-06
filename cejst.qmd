@@ -12,6 +12,8 @@ execute:
 
 Under the new Equity Strategy, our goal is to ensure at least 40% of the benefits from TBEP activities are directed to underserved communities (see [Mapping underserved communities](underserved.html)). Many of these underserved communities are also disproportionately burdened by pollution, expected impacts from climate change, and lack of green space. Understanding which communities face different burdens can help TBEP prioritize different activities to help mitigate or reduce the burdens facing these communities.
 
+*UPDATE: In 2025, The U.S. Environmental Protection Agency removed all data we rely on for mapping underserved and overburdened communities in Tampa Bay, including EJScreen and CEJST. The instructions below have now been updated to reflect this change, which requires the user to download archived copies of these datasets from third party sources.*
+
 TBEP has selected the following 12 factors representing (1) those most relevant to the burdens facing communities in Tampa Bay and (2) environmental injustices that could be reduced by the benefits of TBEP activities:
 
 -   Climate Change
@@ -35,7 +37,6 @@ TBEP has selected the following 12 factors representing (1) those most relevant 
 
 Below, we have provided instructions for downloading, cleaning, and analyzing the data that will be used to characterize the burdens facing communities in Tampa Bay. To view instructions for utilizing the final data to map underserved and overburdened communities, see [Mapping underserved and overburdened communities](overburdened.html).
 
-
 Load the required R packages (install first as needed).
 
 ```{r}
@@ -48,9 +49,9 @@ library(RColorBrewer)
 
 ## CEJST Data
 
-The U.S. Council on Environmental Quality has developed the Climate and Economic Justice Screening Tool ([CEJST](https://screeningtool.geoplatform.gov/en/about){target="_blank"}) to assist users in identifying overburdened communities using a similar methodology as EJScreen, in which national percentiles are used as thresholds for flagging census tracts that are significantly burdened by one or more indicators spanning climate change, energy, health, housing, pollution, and other dimensions. The data is available from [https://screeningtool.geoplatform.gov/en/downloads](https://screeningtool.geoplatform.gov/en/downloads){target="_blank"}.
+The U.S. Council on Environmental Quality has developed the Climate and Economic Justice Screening Tool ([CEJST](https://screeningtool.geoplatform.gov/en/about){target="_blank"}) to assist users in identifying overburdened communities using a similar methodology as EJScreen, in which national percentiles are used as thresholds for flagging census tracts that are significantly burdened by one or more indicators spanning climate change, energy, health, housing, pollution, and other dimensions. Archived CEJST 2.0 data is available from the [Harvard Dataverse](https://doi.org/10.7910/DVN/XRNMXK){target="_blank"}.
 
-CEJST provides the percentiles we need for 10 out of the 12 variables we use for identifying overburdened communities. Below are brief descriptions of the variables and how they are estimated, and more information about the data, sources, and methodologies can be found [here](https://screeningtool.geoplatform.gov/en/methodology){target="_blank'}.
+CEJST provides the percentiles we need for 10 out of the 12 variables we use for identifying overburdened communities. Below are brief descriptions of the variables and how they are estimated, and more information about the data, sources, and methodologies can be found in the technical support documents contained within the CEJST ZIP file.
 
 -   *Expected agricultural loss rate*: Expected agricultural value at risk from losses due to fourteen types of natural hazards linked to climate change.
 -   *Projected flood risk*: Number of properties at risk of floods occurring in the next 30 years from tides, rain, riverine or storm surges based on a climate-adjusted model.
@@ -67,7 +68,7 @@ Download the CEJST zip file to a temporary directory and unzip it to a second te
 
 ```{r}
 #| cache: true
-urlin <- 'https://static-data-screeningtool.geoplatform.gov/data-versions/1.0/data/score/downloadable/1.0-shapefile-codebook.zip'
+urlin <- 'https://www.dropbox.com/scl/fi/514156aicnv7ws5s9na2y/2.0-codebook.zip?rlkey=vmk76qzb6by36zpt6obsol4za&st=twtpdtus&dl=1'
 
 tmp1 <- tempfile(fileext = ".zip")
 download.file(url = urlin, destfile = tmp1)
@@ -109,11 +110,12 @@ View the data. It will look similar to the EJScreen data.
 #| eval: true
 load(file = 'data/dattbcejst.RData')
 ```
+
 ```{r}
 mapview(dattbcejst)
 ```
 
-Unfortunately, the census tracts from CEJST are not completely identical to the census tracts in EJScreen. The tracts provided by CEJST, when they do differ, are primarily at a larger scale (e.g., one CEJST tract may be split into 2 tracts in EJScreen data). We prefer to work from the higher resolution tracts (EJScreen), so we need to make sure, for each EJScreen tract, we pull the relevant data from the CEJST tract. Notably, some of the resulting tract data may not be entirely accurate, as percentiles may apply to the larger CEJST tract but not necessarily to the tracts as split by the EJScreen data. As of February 2023, the tract boundaries between EJScreen and CEJST have yet to be harmonized, but this may change in future versions of these tools.
+Unfortunately, the census tracts from CEJST are not completely identical to the census tracts in EJScreen. The tracts provided by CEJST, when they do differ, are primarily at a larger scale (e.g., one CEJST tract may be split into 2 tracts in EJScreen data). We prefer to work from the higher resolution tracts (EJScreen), so we need to make sure, for each EJScreen tract, we pull the relevant data from the CEJST tract. Notably, some of the resulting tract data may not be entirely accurate, as percentiles may apply to the larger CEJST tract but not necessarily to the tracts as split by the EJScreen data. As of February 2023, the tract boundaries between EJScreen and CEJST have yet to be harmonized.
 
 Load the 'underserved_tract' shapefile created from "Mapping underserved communities".
 
@@ -123,7 +125,6 @@ load(file = 'data/underserved_tract.RData')
 
 mapview(underserved_tract, layer.name = "Underserved Communities")
 ```
-
 
 We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into 'underserved_tract'. Similar to the thresholds defined for identifying underserved communities, we define "overburdened" communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.
 
@@ -275,7 +276,7 @@ Load the national census tract data from EJScreen if you have it saved from [Get
 ```{r}
 #| cache: true
 # url with zip gdb to download
-urlin <- 'https://gaftp.epa.gov/EJSCREEN/2022/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip'
+urlin <- 'https://www.dropbox.com/scl/fi/1hshluhorw2fgy3shkvjo/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip?rlkey=c1jyluowtutk9vhhhff7wlnfq&st=w6gs4y2r&dl=1'
 
 # download file
 tmp1 <- tempfile(fileext = ".zip")
@@ -339,7 +340,6 @@ underserved_cejst_mines_bfields <- left_join(underserved_cejst_mines, proxbfield
 
 under_over <- underserved_cejst_mines_bfields
 ```
-
 
 Save this final layer as an RData object for future use.
 
