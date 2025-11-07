@@ -71,7 +71,7 @@ Download the CEJST zip file to a temporary directory and unzip it to a second te
 urlin <- 'https://www.dropbox.com/scl/fi/514156aicnv7ws5s9na2y/2.0-codebook.zip?rlkey=vmk76qzb6by36zpt6obsol4za&st=twtpdtus&dl=1'
 
 tmp1 <- tempfile(fileext = ".zip")
-download.file(url = urlin, destfile = tmp1, mode = 'wb')
+download.file(url = urlin, destfile = tmp1)
 
 tmp2 <- tempdir()
 unzip(tmp1, exdir = tmp2)
