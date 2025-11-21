@@ -68,10 +68,10 @@ Download the CEJST zip file to a temporary directory and unzip it to a second te
 
 ```{r}
 #| cache: true
-urlin <- 'https://www.dropbox.com/scl/fi/514156aicnv7ws5s9na2y/2.0-codebook.zip?rlkey=vmk76qzb6by36zpt6obsol4za&st=twtpdtus&dl=1'
+urlin <- 'https://www.dropbox.com/scl/fi/514156aicnv7ws5s9na2y/2.0-codebook.zip?rlkey=vmk76qzb6by36zpt6obsol4za&dl=1'
 
 tmp1 <- tempfile(fileext = ".zip")
-download.file(url = urlin, destfile = tmp1)
+download.file(url = urlin, destfile = tmp1, mode = 'wb')
 
 tmp2 <- tempdir()
 unzip(tmp1, exdir = tmp2)
@@ -197,7 +197,7 @@ urlin <- 'https://ordsext.epa.gov/FLA/www3/acres_frs.kmz'
 
 # download file
 tmp1 <- tempfile(fileext = ".kmz")
-download.file(url = urlin, destfile = tmp1, method = 'curl')
+download.file(url = urlin, destfile = tmp1, mode = 'wb')
 ```
 
 Unzip the KMZ file.
@@ -276,11 +276,11 @@ Load the national census tract data from EJScreen if you have it saved from [Get
 ```{r}
 #| cache: true
 # url with zip gdb to download
-urlin <- 'https://www.dropbox.com/scl/fi/1hshluhorw2fgy3shkvjo/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip?rlkey=c1jyluowtutk9vhhhff7wlnfq&st=w6gs4y2r&dl=1'
+urlin <- 'https://www.dropbox.com/scl/fi/1hshluhorw2fgy3shkvjo/EJSCREEN_2022_Supplemental_with_AS_CNMI_GU_VI_Tracts.gdb.zip?rlkey=c1jyluowtutk9vhhhff7wlnfq&dl=1'
 
 # download file
 tmp1 <- tempfile(fileext = ".zip")
-download.file(url = urlin, destfile = tmp1)
+download.file(url = urlin, destfile = tmp1, mode = 'wb')
 
 # unzip file
 tmp2 <- tempdir()
