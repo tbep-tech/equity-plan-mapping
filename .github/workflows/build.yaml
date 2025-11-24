@@ -27,7 +27,7 @@ jobs:
           packages: |
             dplyr
             sf
-            mapview
+            leaflet
             RColorBrewer
             leafsync
             ggplot2

@@ -19,7 +19,7 @@ Load the required R packages (install first as needed).
 ```{r}
 #| eval: true
 library(sf)
-library(mapview)
+library(leaflet)
 library(dplyr)
 ```
 
@@ -84,15 +84,32 @@ The layer can be saved as an RData object if needed. The size should be minimal 
 save(tb_tract, file = 'data/tb_tract.RData')
 ```
 
-View the data using mapview (only the spatial data are shown). You can see that we now have the desired spatial data just for our watershed.
+View the data using leaflet. You can see that we now have the desired spatial data just for our watershed.
 
 ```{r}
 #| eval: true
 load(file = 'data/tb_tract.RData')
 
-tb_tract %>%
-  select(-everything()) %>% 
-  mapview(layer.name = "Census tracts")
+# Convert to WGS84 for leaflet
+tb_tract_wgs84 <- st_transform(tb_tract, crs = 4326)
+
+tb_tract_wgs84 %>%
+  select(ID) %>% 
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "blue",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~ID, 
+    group = "Census Tract"
+  ) %>%
+  addLayersControl(
+    overlayGroups = "Census Tract",
+    options = layersControlOptions(collapsed = FALSE)
+  )
 ```
 
 Unlink the temporary files to delete them when you are finished.

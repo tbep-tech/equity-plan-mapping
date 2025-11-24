@@ -15,7 +15,7 @@ Load the required R packages (install first as needed).
 ```{r}
 #| eval: true
 library(sf)
-library(mapview)
+library(leaflet)
 library(dplyr)
 library(RColorBrewer)
 library(leafsync)
@@ -27,16 +27,57 @@ Load the map of underserved communities in Tampa Bay made in the previous page. 
 ```{r}
 load(file = 'data/under_over.RData')
 
-mapview(under_over, zcol = "thresholdEJ_N", col.regions = brewer.pal(8, "YlOrRd"), layer.name = "No. of Burdens")
+# Convert to WGS84 for leaflet
+under_over_wgs84 <- st_transform(under_over, crs = 4326)
+
+# Create color palette
+pal_burdens <- colorNumeric(palette = brewer.pal(8, "YlOrRd"), domain = under_over_wgs84$thresholdEJ_N)
+
+under_over_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_burdens(thresholdEJ_N),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("Number of Burdens:", thresholdEJ_N)
+  ) %>%
+  addLegend(
+    pal = pal_burdens,
+    values = ~thresholdEJ_N,
+    title = "No. of Burdens",
+    position = "bottomright"
+  )
 ```
 
 View the underserved tracts that also meet our definition of overburdened communities. The areas in red are those that rank in the 80th percentile (or greater) nationally in one or more of the environmental justice screening variables.
 
 ```{r}
-mapview(under_over, zcol = "overburdened", col.regions = list("black","red"), layer.name = "Overburdened")
+# Create color palette for overburdened
+pal_overburdened <- colorFactor(palette = c("black", "red"), domain = under_over_wgs84$overburdened)
+
+under_over_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_overburdened(overburdened),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("Overburdened:", overburdened)
+  ) %>%
+  addLegend(
+    pal = pal_overburdened,
+    values = ~overburdened,
+    title = "Overburdened",
+    position = "bottomright"
+  )
 ```
 
-You can see that all but 3 underserved tracts in our watershed are also considered overburdened by one or more EJ issue. Run the code below to create a field listing the major EJ issues facing each community, which you can view in the map by hovering your cursor over a tract. 
+You can see that all but 3 underserved tracts in our watershed are also considered overburdened by one or more EJ issue. Run the code below to create a field listing the major EJ issues facing each community, which you can view in the map by clicking your cursor on a tract. 
 
 ```{r}
 under_over <- under_over %>%
@@ -50,7 +91,26 @@ under_over <- under_over %>%
   mutate(EJissues1 = gsub('NA, ', '', EJissues1)) %>%
   mutate(EJissues1 = gsub(', NA', '', EJissues1))
 
-mapview(under_over, zcol = "thresholdEJ_N", col.regions = brewer.pal(8, "YlOrRd"), label = "EJissues1", layer.name = "No. of Burdens")
+# Convert to WGS84 for leaflet
+under_over_wgs84 <- st_transform(under_over, crs = 4326)
+
+under_over_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_burdens(thresholdEJ_N),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("EJ Issues:", EJissues1, "<br>Number of Burdens:", thresholdEJ_N)
+  ) %>%
+  addLegend(
+    pal = pal_burdens,
+    values = ~thresholdEJ_N,
+    title = "No. of Burdens",
+    position = "bottomright"
+  )
 ```
 
 Run the code below to create another field listing the specific EJ issues facing each community. Hover over the tracts to see the changes.
@@ -73,27 +133,106 @@ under_over <- under_over %>%
   mutate(EJissues1.1 = gsub('NA, ', '', EJissues1.1)) %>%
   mutate(EJissues1.1 = gsub(', NA', '', EJissues1.1))
 
-mapview(under_over, zcol = "thresholdEJ_N", col.regions = brewer.pal(8, "YlOrRd"), label = "EJissues1.1", layer.name = "No. of Burdens")
+under_over_wgs84 <- st_transform(under_over, crs = 4326)
+
+under_over_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_burdens(thresholdEJ_N),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("EJ Issues:", EJissues1.1, "<br>Number of Burdens:", thresholdEJ_N)
+  ) %>%
+  addLegend(
+    pal = pal_burdens,
+    values = ~thresholdEJ_N,
+    title = "No. of Burdens",
+    position = "bottomright"
+  )
 ```
 
 You can also use this data to compare underserved communities facing different EJ challenges. The code below allows you to compare locations of communities with 4 different burdens at once.
 
 ```{r}
-map_flood <- under_over %>%
+# Individual filtered maps
+map_flood <- under_over_wgs84 %>%
   filter(thresholdEJ_floodr == 1) %>%
-  mapview(zcol = "floodr", col.regions = "blue", layer.name = "Burden")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "blue",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    group = ~paste("Burden:", floodr)
+  ) %>%
+  addLegend(
+    colors = "blue",
+    labels = "Flood Risk",
+    position = "bottomright",
+    title = "Burden Type"
+  )
 
-map_wastew <- under_over %>%
+map_wastew <- under_over_wgs84 %>%
   filter(thresholdEJ_wastew == 1) %>%
-  mapview(zcol = "wastew", col.regions = "black", layer.name = "Burden")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "black",
+    weight = 0.5,
+    opacity = 1,
+    color = "white",
+    fillOpacity = 0.7,
+    group = ~paste("Burden:", wastew)
+  ) %>%
+  addLegend(
+    colors = "black",
+    labels = "Wastewater Discharge",
+    position = "bottomright",
+    title = "Burden Type"
+  )
 
-map_greens <- under_over %>%
+map_greens <- under_over_wgs84 %>%
   filter(thresholdEJ_greens == 1) %>%
-  mapview(zcol = "greens", col.regions = "green", layer.name = "Burden")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "green",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    group = ~paste("Burden:", greens)
+  ) %>%
+  addLegend(
+    colors = "green",
+    labels = "Lack of Green Space",
+    position = "bottomright",
+    title = "Burden Type"
+  )
 
-map_bfield <- under_over %>%
+map_bfield <- under_over_wgs84 %>%
   filter(thresholdEJ_bfield == 1) %>%
-  mapview(zcol = "bfield", col.regions = "brown", layer.name = "Burden")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "brown",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    group = ~paste("Burden:", bfield)
+  ) %>%
+  addLegend(
+    colors = "brown",
+    labels = "Brownfield Sites",
+    position = "bottomright",
+    title = "Burden Type"
+  )
 
 sync(map_flood, map_wastew, map_greens, map_bfield)
 ```

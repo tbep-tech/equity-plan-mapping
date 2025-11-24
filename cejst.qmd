@@ -42,7 +42,7 @@ Load the required R packages (install first as needed).
 ```{r}
 #| eval: true
 library(sf)
-library(mapview)
+library(leaflet)
 library(dplyr)
 library(RColorBrewer)
 ```
@@ -112,7 +112,24 @@ load(file = 'data/dattbcejst.RData')
 ```
 
 ```{r}
-mapview(dattbcejst)
+# Convert to WGS84 for leaflet
+dattbcejst_wgs84 <- st_transform(dattbcejst, crs = 4326)
+
+dattbcejst_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "blue",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    group = "CEJST"
+  ) %>%
+  addLayersControl(
+    overlayGroups = c("CEJST"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 ```
 
 Unfortunately, the census tracts from CEJST are not completely identical to the census tracts in EJScreen. The tracts provided by CEJST, when they do differ, are primarily at a larger scale (e.g., one CEJST tract may be split into 2 tracts in EJScreen data). We prefer to work from the higher resolution tracts (EJScreen), so we need to make sure, for each EJScreen tract, we pull the relevant data from the CEJST tract. Notably, some of the resulting tract data may not be entirely accurate, as percentiles may apply to the larger CEJST tract but not necessarily to the tracts as split by the EJScreen data. As of February 2023, the tract boundaries between EJScreen and CEJST have yet to be harmonized.
@@ -123,7 +140,24 @@ Load the 'underserved_tract' shapefile created from "Mapping underserved communi
 #| eval: true
 load(file = 'data/underserved_tract.RData')
 
-mapview(underserved_tract, layer.name = "Underserved Communities")
+# Convert to WGS84 for leaflet
+underserved_tract_wgs84 <- st_transform(underserved_tract, crs = 4326)
+
+underserved_tract_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "blue",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    group = "Underserved Communities"
+  ) %>%
+  addLayersControl(
+    overlayGroups = c("Underserved Communities"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 ```
 
 We will create representative points out of the underserved EJScreen tracts. We can then attribute the values of the underlying CEJST tracts to each point, and then merge those values into 'underserved_tract'. Similar to the thresholds defined for identifying underserved communities, we define "overburdened" communities as those that fall within the 80th percentile (or greater) nationally on at least 1 of the 12 measures of environmental justice outlined above.
@@ -164,7 +198,19 @@ mined <- st_read('https://ca.dep.state.fl.us/arcgis/rest/services/OpenData/MMP_M
 View a map of all active mandatory phosphate mines in Florida.
 
 ```{r}
-mapview(mined)
+mined_wgs84 <- st_transform(mined, crs = 4326)
+
+mined_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "brown",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~MINE_NAME
+  )
 ```
 
 CEJST considers any census tract containing abandoned coal mines to be significantly burdened. We adopt the same approach for phosphate mines in Tampa Bay. Create an indicator for tracts that overlap with the phosphate mining units.
@@ -266,7 +312,21 @@ Load and view the brownfield sites.
 ```{r}
 #| eval: true
 load(file = 'data/allbfld.RData')
-mapview(allbfld, legend = F, col.regions = 'brown')
+# Convert to WGS84 for leaflet
+allbfld_wgs84 <- st_transform(allbfld, crs = 4326)
+
+allbfld_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addCircleMarkers(
+    fillColor = "brown",
+    weight = 0.5,
+    radius = 4,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~Name
+  )
 ```
 
 You can see the locations of all brownfield sites from the ACRES database across the country. We will use this data in a manner consistent with how CEJST measures a community's proximity to hazardous waste facilities and Superfund sites.

@@ -34,7 +34,7 @@ Load the required R packages (install first as needed).
 ```{r}
 #| eval: true
 library(sf)
-library(mapview)
+library(leaflet)
 library(dplyr)
 library(RColorBrewer)
 library(ggplot2)
@@ -76,9 +76,26 @@ Filter the dataset. For this baseline, we only want habitat projects from 2017-2
 baseline5yr <- tbepNEPORT %>%
   filter(Year > 2016 & Year < 2022,
          grepl('TBEP|Tampa Bay Estuary Program', Lead_Imple) |
-         grepl('TBEP|Tampa Bay Estuary Program|TBERF|Tampa Bay Environmental Restoration Fund|Bay Mini-Grant|RESTORE', Main_Fundi))
+         grepl('TBEP|Tampa Bay Estuary Program|TBERF|Tampa Bay Environmental Restoration Fund|Bay Mini-Grant|RESTORE', Main_Fundi)) %>%
+  st_zm()
+baseline5yr_wgs84 <- st_transform(baseline5yr, crs = 4326)
 
-mapview(baseline5yr, layer.name = "TBEP Habitat Projects (2017-2021)")
+leaflet(baseline5yr_wgs84) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addCircleMarkers(
+    fillColor = ~"blue",
+    weight = 0.5,
+    opacity = 1,
+    radius = 4,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID),
+    group = "TBEP Habitat Projects (2017-2021)"
+  ) %>%
+  addLayersControl(
+    overlayGroups = c("TBEP Habitat Projects (2017-2021)"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 ```
 
 Create a 1 mile buffer around the habitat projects.
@@ -118,20 +135,81 @@ To identify which of these projects have downstream benefits to underserved comm
 ```{r}
 #| cache: true
 load(file = 'data/tb_flowlines.RData')
+tb_flowlines <- st_zm(tb_flowlines)
+tb_flowlines_wgs84 <- st_transform(tb_flowlines, crs = 4326)
 
-mapview(tb_flowlines)
+leaflet(tb_flowlines_wgs84) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(
+    color = ~"blue",
+    weight = 1,
+    opacity = 0.7
+  )
 ```
 
 View the projects in relation to the flowlines. Adding in the underserved communities and drainage basin boundaries will help you determine if there are downstream benefits to these communities for each project.
 
 ```{r}
 #| cache: true
-mapviewOptions("basemaps.color.shuffle" = FALSE)
 
-mapview(baseline5yr_dbint, col.regions = "yellow", layer.name = "Projects in DBs with underserved communities", label = "ID") + 
-  mapview(underserved_dbasins, col.regions = "black", alpha.regions = 0, layer.name = "DBs with underserved communities") +
-  mapview(underserved_tract, col.regions = "red", layer.name = "Underserved communities", label = "ID") + 
-  mapview(tb_flowlines, col.regions = "blue", layer.name = "Flowlines")
+# Transform all data to WGS84 for leaflet
+baseline5yr_dbint_wgs84 <- st_transform(baseline5yr_dbint, crs = 4326)
+underserved_dbasins_wgs84 <- st_transform(underserved_dbasins, crs = 4326)
+underserved_tract_wgs84 <- st_transform(underserved_tract, crs = 4326)
+tb_flowlines_wgs84 <- st_transform(tb_flowlines, crs = 4326)
+
+# Create combined leaflet map with multiple layers
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  # Add baseline5yr_dbint layer
+  addCircleMarkers(
+    data = baseline5yr_dbint_wgs84,
+    fillColor = "yellow",
+    weight = 0.5,
+    opacity = 1,
+    radius = 4,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID),
+    group = "Projects in DBs with underserved communities"
+  ) %>%
+  # Add underserved_dbasins layer
+  addPolygons(
+    data = underserved_dbasins_wgs84,
+    fillColor = "black",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0,
+    group = "DBs with underserved communities"
+  ) %>%
+  # Add underserved_tract layer
+  addPolygons(
+    data = underserved_tract_wgs84,
+    fillColor = "red",
+    weight = 0.5,
+    opacity = 1,
+    color = "darkred",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID),
+    group = "Underserved communities"
+  ) %>%
+  # Add tb_flowlines layer
+  addPolylines(
+    data = tb_flowlines_wgs84,
+    color = "blue",
+    weight = 1,
+    opacity = 0.7,
+    group = "Flowlines"
+  ) %>%
+  # Add layer control
+  addLayersControl(
+    overlayGroups = c("Projects in DBs with underserved communities",
+                      "DBs with underserved communities",
+                      "Underserved communities",
+                      "Flowlines"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 ```
 
 There are 6 projects occurring within a drainage basin containing underserved communities that are more than 1 mile away from the nearest community. We can investigate each one relative to the flowlines to determine if there is an underserved community downstream that could benefit from the project.
@@ -293,9 +371,48 @@ under_over_summary1 <- under_over_projects %>%
   summarise(Projects_N = sum(Projects_N),
             Project_Costs = sum(Project_Costs))
 
-projectmap <- mapview(under_over_summary1, zcol = "Projects_N", layer.name = "No. of Projects")
-investmentmap <- mapview(under_over_summary1, zcol = "Project_Costs", layer.name = "Investment Dollars")
+# Transform to WGS84 for leaflet
+under_over_summary1_wgs84 <- st_transform(under_over_summary1, crs = 4326)
 
+# Create color palettes for the two maps
+pal_projects <- colorNumeric(palette = "viridis", domain = under_over_summary1_wgs84$Projects_N)
+pal_costs <- colorNumeric(palette = "plasma", domain = under_over_summary1_wgs84$Project_Costs)
+
+# Create the projects map
+projectmap <- leaflet(under_over_summary1_wgs84) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_projects(Projects_N),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID, "<br>Projects:", Projects_N)
+  ) %>%
+  addLegend("bottomright", 
+            pal = pal_projects, 
+            values = ~Projects_N,
+            title = "No. of Projects",
+            opacity = 1)
+
+# Create the investment map
+investmentmap <- leaflet(under_over_summary1_wgs84) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_costs(Project_Costs),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID, "<br>Investment:", scales::dollar(Project_Costs))
+  ) %>%
+  addLegend("bottomright", 
+            pal = pal_costs, 
+            values = ~Project_Costs,
+            title = "Investment Dollars",
+            opacity = 1)
+
+# Display both maps side by side
 sync(projectmap, investmentmap)
 ```
 
@@ -355,21 +472,81 @@ under_over_techniques <- full_join(under_over, summaries2, by = 'ID') %>%
             InvasivesControl = sum(Restoration_Technique == "Invasives Control/Removal - Vegetation"),
             Other = sum(Restoration_Technique == "Other"))
 
-map_planting <- under_over_techniques %>%
+# Transform to WGS84
+under_over_techniques_wgs84 <- st_transform(under_over_techniques, crs = 4326)
+
+# Create individual leaflet maps for each technique
+map_planting <- under_over_techniques_wgs84 %>%
   filter(Planting > 0) %>%
-  mapview(col.regions = "green", layer.name = "Planting")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "green",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID, "<br>Planting Projects:", Planting),
+    group = "Planting"
+  ) %>%
+  addLayersControl(
+    overlayGroups = c("Planting"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 
-map_oyster <- under_over_techniques %>%
-  filter(OysterGardening  > 0) %>%
-  mapview(col.regions = "black", layer.name = "Oyster Gardening")
+map_oyster <- under_over_techniques_wgs84 %>%
+  filter(OysterGardening > 0) %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "black",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID, "<br>Oyster Gardening Projects:", OysterGardening),
+    group = "Oyster Gardening"
+  ) %>%
+  addLayersControl(
+    overlayGroups = c("Oyster Gardening"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 
-map_shore <- under_over_techniques %>%
+map_shore <- under_over_techniques_wgs84 %>%
   filter(ShorelineEnhance > 0) %>%
-  mapview(col.regions = "brown", layer.name = "Shoreline Enhancement")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "brown",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID, "<br>Shoreline Enhancement Projects:", ShorelineEnhance),
+    group = "Shoreline Enhancement"
+  ) %>%
+  addLayersControl(
+    overlayGroups = c("Shoreline Enhancement"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 
-map_invasives <- under_over_techniques %>%
-  filter(InvasivesControl  > 0) %>%
-  mapview(col.regions = "blue", layer.name = "Invasives Control")
+map_invasives <- under_over_techniques_wgs84 %>%
+  filter(InvasivesControl > 0) %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "blue",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("ID:", ID, "<br>Invasives Control Projects:", InvasivesControl),
+    group = "Invasives Control"
+  ) %>%
+  addLayersControl(
+    overlayGroups = c("Invasives Control"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 
 sync(map_planting, map_oyster, map_shore, map_invasives)
 ```

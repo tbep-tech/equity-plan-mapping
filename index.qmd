@@ -47,7 +47,7 @@ This methodology may be adapted by other National Estuary Programs or local gove
 ```{r}
 #| echo: false
 library(sf)
-library(mapview)
+library(leaflet)
 library(RColorBrewer)
 library(dplyr)
 
@@ -55,9 +55,24 @@ load(file = 'data/underserved_tract.RData')
 load(file = 'data/underserved_dbasins.RData')
 load(file = 'data/tb_equity.RData')
 
-underserved_tract %>%
+underserved_tract_wgs84 <- st_transform(underserved_tract, crs = 4326)
+
+underserved_tract_wgs84 %>%
   filter(underserved == "Yes") %>%
-  mapview(col.regions = "red", layer.name = "Underserved Census Tracts")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "red",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    group = "Underserved Census Tract"
+  ) %>%
+  addLayersControl(
+    overlayGroups = "Underserved Census Tract",
+    options = layersControlOptions(collapsed = FALSE)
+  )
 ```
 
 ## Drainage basins containing underserved communities
@@ -65,22 +80,58 @@ underserved_tract %>%
 ```{r}
 #| echo: false
 
-mapviewOptions("basemaps.color.shuffle" = FALSE)
+underserved_dbasins_wgs84 <- st_transform(underserved_dbasins, crs = 4326)
 
-underserved_dbasins %>%
+# Create color palette
+pal <- colorNumeric(palette = brewer.pal(6, "Reds"), domain = underserved_dbasins_wgs84$pct_under)
+
+underserved_dbasins_wgs84 %>%
   filter(pct_under > 0) %>%
-  mapview(zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal(pct_under),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("Waterbody:", WATERBODY_NAME, "<br>Underserved %:", pct_under)
+  ) %>%
+  addLegend(
+    pal = pal,
+    values = ~pct_under,
+    title = "Underserved Tracts (% of DB)",
+    position = "bottomright"
+  )
 ```
 
 ## Underserved and overburdened communities in Tampa Bay
 
 ```{r}
 #| echo: false
+# Convert to WGS84 for leaflet
+tb_equity_wgs84 <- st_transform(tb_equity, crs = 4326)
 
-mapviewOptions("basemaps.color.shuffle" = FALSE)
+# Create color palette
+pal_burdens <- colorNumeric(palette = brewer.pal(8, "YlOrRd"), domain = tb_equity_wgs84$thresholdEJ_N)
 
-tb_equity %>%
-  mapview(zcol = "thresholdEJ_N", col.regions = brewer.pal(8, "YlOrRd"), layer.name = "No. of Burdens", label = "EJissues1")
+tb_equity_wgs84 %>%
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_burdens(thresholdEJ_N),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("EJ Issues:", EJissues1, "<br>Number of Burdens:", thresholdEJ_N)
+  ) %>%
+  addLegend(
+    pal = pal_burdens,
+    values = ~thresholdEJ_N,
+    title = "No. of Burdens",
+    position = "bottomright"
+  )
 ```
 
 Navigate through the Methods pages to create this data and replicate these maps.

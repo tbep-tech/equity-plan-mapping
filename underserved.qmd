@@ -14,7 +14,7 @@ Load the required R packages (install first as needed).
 #| message: false
 #| warning: false
 library(sf)
-library(mapview)
+library(leaflet)
 library(dplyr)
 library(RColorBrewer)
 ```
@@ -25,9 +25,25 @@ Load the census tract data and map only the spatial data.
 #| out-width: "100%"
 load(file = 'data/tb_tract.RData')
 
-tb_tract %>%
-  select(-everything()) %>% 
-  mapview(layer.name = "Census tracts")
+tb_tract_wgs84 <- st_transform(tb_tract, crs = 4326)
+
+tb_tract_wgs84 %>%
+  select(ID) %>% 
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = "blue",
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~ID, 
+    group = "Census Tracts"
+  ) %>%
+  addLayersControl(
+    overlayGroups = c("Census Tracts"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 ```
 
 You can see that some tracts are only representative of the bay. We can clean up this data by retaining only the tracts in which the total population recorded in the latest American Community Survey ("ACSTOTPOP" attribute field) was above zero. This will remove tracts in which no people reside (e.g., large waterbodies, parks, or other natural areas).
@@ -73,17 +89,56 @@ underserved_tract <- tb_tract %>%
 View a map showing the number of thresholds met per census tract (you may adapt to a different color scale of your choice).
 
 ```{r}
-underserved_tract %>% 
+# Convert to WGS84 for leaflet
+underserved_tract_wgs84 <- st_transform(underserved_tract, crs = 4326)
+
+# Create color palette
+pal_threshold <- colorNumeric(palette = brewer.pal(6, "Reds"), domain = underserved_tract_wgs84$threshold_N)
+
+underserved_tract_wgs84 %>% 
   select(threshold_N) %>% 
-  mapview(zcol = "threshold_N", col.regions = brewer.pal(6, "Reds"), layer.name = "No. of Thresholds Met")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_threshold(threshold_N),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("Thresholds Met:", threshold_N)
+  ) %>%
+  addLegend(
+    pal = pal_threshold,
+    values = ~threshold_N,
+    title = "No. of Thresholds Met",
+    position = "bottomright"
+  )
 ```
 
 View the tracts that meet our more inclusive definition of underserved communities. The areas in red are those that rank in the 80th percentile (or greater) nationally in 2 or more of the demographic screening variables. They will serve as priority areas for increasing the equitable distribution of benefits from TBEP's non-BIL funded environmental programs.
 
 ```{r}
-underserved_tract %>% 
+# Create color palette for underserved
+pal_underserved <- colorFactor(palette = c("gray", "red"), domain = underserved_tract_wgs84$underserved)
+
+underserved_tract_wgs84 %>% 
   select(underserved) %>% 
-  mapview(zcol = "underserved", col.regions = list("gray","red"), layer.name = "Underserved Communities")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_underserved(underserved),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("Underserved:", underserved)
+  ) %>%
+  addLegend(
+    pal = pal_underserved,
+    values = ~underserved,
+    title = "Underserved Communities",
+    position = "bottomright"
+  )
 ```
 
 You can save this final data as an RData object for future use.
@@ -209,25 +264,57 @@ underserved_dbasins <- tb_dbasins_under %>%
   select(HUC, WBID, WATERBODY_NAME, pct_under)
 ```
 
-Create a map showing priority drainage basins based on the presence of underserved communities. Hover over the drainage basins to view the name of the water body assessment unit.
+Create a map showing priority drainage basins based on the presence of underserved communities. Click on the drainage basins to view the name of the water body assessment unit.
 
 ```{r}
-mapviewOptions("basemaps.color.shuffle" = FALSE)
+# Convert to WGS84 for leaflet
+underserved_dbasins_wgs84 <- st_transform(underserved_dbasins, crs = 4326)
 
-underserved_dbasins %>% 
+# Create color palette
+pal_dbasins <- colorNumeric(palette = brewer.pal(6, "Reds"), domain = underserved_dbasins_wgs84$pct_under)
+
+underserved_dbasins_wgs84 %>% 
   select(WATERBODY_NAME, pct_under) %>% 
-  mapview(zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_dbasins(pct_under),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("Waterbody:", WATERBODY_NAME, "<br>Underserved %:", round(pct_under, 2))
+  ) %>%
+  addLegend(
+    pal = pal_dbasins,
+    values = ~pct_under,
+    title = "Underserved Tracts (% of DB)",
+    position = "bottomright"
+  )
 ```
 
 Exclude drainage basins with no underserved communities present. 
 
 ```{r}
-mapviewOptions("basemaps.color.shuffle" = FALSE)
-
-underserved_dbasins %>% 
+underserved_dbasins_wgs84 %>% 
   select(WATERBODY_NAME, pct_under) %>% 
   filter(pct_under > 0) %>%
-  mapview(zcol = "pct_under", col.regions = brewer.pal(6, "Reds"), layer.name = "Underserved Tracts (% of DB)", label = "WATERBODY_NAME")
+  leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolygons(
+    fillColor = ~pal_dbasins(pct_under),
+    weight = 0.5,
+    opacity = 1,
+    color = "black",
+    fillOpacity = 0.7,
+    popup = ~paste("Waterbody:", WATERBODY_NAME, "<br>Underserved %:", round(pct_under, 2))
+  ) %>%
+  addLegend(
+    pal = pal_dbasins,
+    values = ~pct_under,
+    title = "Underserved Tracts (% of DB)",
+    position = "bottomright"
+  )
 ```
 
 Save this final data as an RData object for future use.
