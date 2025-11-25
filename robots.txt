@@ -1,1 +1,1 @@
-Sitemap: https://github.com/tbep-tech/equity-plan-mapping/sitemap.xml
+Sitemap: https://tbep-tech.github.io/equity-plan-mapping/sitemap.xml
